@@ -1,0 +1,4 @@
+2026-04-03 17:28:07,858	INFO	main: Started with the command: /Users/angshumansmac/anaconda3/bin/mapDamage -i mammoth_ERR855944.bam -r elephant_ref.fa
+2026-04-03 17:31:25,705	DEBUG	main: BAM read in 204.465537 seconds
+2026-04-03 17:31:26,330	INFO	main: Successful run
+2026-04-03 17:31:26,330	DEBUG	main: Run completed in 205.091275 seconds

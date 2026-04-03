@@ -33,28 +33,28 @@ checkpoints/
 *.safetensors
 
 # ─── Genomic raw data — large, re-downloadable from NCBI SRA / RefSeq ────────
-mammoth_sra/mammoth/*.fastq
-mammoth_sra/mammoth/*.sai
-mammoth_sra/mammoth/*.bam
-mammoth_sra/mammoth/*.bam.bai
-mammoth_sra/mammoth/ERR855944/
-mammoth_sra/mammoth/ERR852028/
+Dataset/mammoth/*.fastq
+Dataset/mammoth/*.sai
+Dataset/mammoth/*.bam
+Dataset/mammoth/*.bam.bai
+Dataset/mammoth/ERR855944/
+Dataset/mammoth/ERR852028/
 
 # ─── Reference genome — large, re-downloadable from NCBI RefSeq ──────────────
-mammoth_sra/elephant_reference/*.fa
-mammoth_sra/elephant_reference/*.fa.amb
-mammoth_sra/elephant_reference/*.fa.ann
-mammoth_sra/elephant_reference/*.fa.bwt
-mammoth_sra/elephant_reference/*.fa.fai
-mammoth_sra/elephant_reference/*.fa.pac
-mammoth_sra/elephant_reference/*.fa.sa
-mammoth_sra/elephant_reference/ncbi_dataset/
-mammoth_sra/elephant_reference/ncbi_dataset.zip
+Dataset/elephant_reference/*.fa
+Dataset/elephant_reference/*.fa.amb
+Dataset/elephant_reference/*.fa.ann
+Dataset/elephant_reference/*.fa.bwt
+Dataset/elephant_reference/*.fa.fai
+Dataset/elephant_reference/*.fa.pac
+Dataset/elephant_reference/*.fa.sa
+Dataset/elephant_reference/ncbi_dataset/
+Dataset/elephant_reference/ncbi_dataset.zip
 
 # ─── What IS tracked ─────────────────────────────────────────────────────────
-# mammoth_sra/mammoth/runs.txt          — SRA accession list
-# mammoth_sra/mammoth/md5sum.txt        — checksums for integrity verification
-# mammoth_sra/results/                  — mapDamage2 output (small, irreproducible without full run)
+# Dataset/mammoth/runs.txt          — SRA accession list
+# Dataset/mammoth/md5sum.txt        — checksums for integrity verification
+# Dataset/results/                  — mapDamage2 output (small, irreproducible without full run)
 # Documentation/                        — all paper documentation
 # All source code (*.py, *.sh, *.yaml)
 

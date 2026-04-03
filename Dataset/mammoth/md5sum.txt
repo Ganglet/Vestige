@@ -1,0 +1,5 @@
+737057e13319bfcdbfbbfcf5261489be  ncbi_dataset/data/data_summary.tsv
+130a486705079cc6a41f11c2760f5f3c  ncbi_dataset/data/assembly_data_report.jsonl
+d9428ac302703b7e86cee845bae3e2c8  ncbi_dataset/data/GCA_024166365.1/GCA_024166365.1_mEleMax1_primary_haplotype_genomic.fna
+f60493b5290f36efaa14b7a65c98ac89  ncbi_dataset/data/GCF_024166365.1/GCF_024166365.1_mEleMax1_primary_haplotype_genomic.fna
+cd5671732364946b0377373b71c43f20  ncbi_dataset/data/dataset_catalog.json
