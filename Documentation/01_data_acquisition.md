@@ -126,11 +126,11 @@ What is tracked in git:
 
 ---
 
-## Remaining Steps (Phase 1)
+## Phase 1 Completion
 
-- [ ] Extract TRPV3, KCNK9, HBB gene coordinates from EanMak 1.0 GFF annotation using Biopython
-- [ ] Parse `misincorporation.txt` → `damage_profile.npy` (numpy arrays for C→T and G→A per position)
-- [ ] Produce C→T / G→A frequency-by-position visualization — Figure 1 of the paper
-- **DELIVERABLE:** `damage_profile.npy` + visualization committed → Phase 2 can begin
+- [x] Extract TRPV3, KCNK9, HBB gene coordinates from EanMak 1.0 annotation via NCBI Entrez
+- [x] Parse `misincorporation.txt` → `damage_profile.npy` (numpy arrays for C→T and G→A per position)
+- [x] Produce C→T / G→A frequency-by-position visualization — Figure 1 of the paper
+- **DELIVERABLE complete.** `damage_profile.npy` + `gene_coords.csv` + Figure 1 committed.
 
 → See `02_damage_profile_parsing.md`
