@@ -14,8 +14,8 @@ Obtain raw ancient DNA reads from a woolly mammoth specimen and a high-quality A
 
 ## 1. Mammoth aDNA Reads
 
-**Source:** NCBI SRA — Project PRJEB44109  
-van der Valk et al., 2021. "Million-year-old DNA sheds light on the genomic history of mammoths." *Nature* 591, 265–269.
+**Source:** NCBI SRA — Project ERP008929
+Palkopoulou et al., 2015. "Complete Genomes Reveal Signatures of Demographic and Genetic Declines in the Woolly Mammoth." *Current Biology* 25(10), 1395–1402.
 
 **Accessions downloaded:**
 
@@ -24,7 +24,7 @@ van der Valk et al., 2021. "Million-year-old DNA sheds light on the genomic hist
 | ERR855944 | Woolly mammoth (*Mammuthus primigenius*) — primary sample used |
 | ERR852028 | Additional mammoth run — reserved |
 
-**Download method:** SRA Toolkit (`fastq-dump` / prefetch). Raw `.sra` files stored in `mammoth_sra/mammoth/ERR855944/` and `mammoth_sra/mammoth/ERR852028/`. FASTQ exported to `mammoth_sra/mammoth/ERR855944.fastq`.
+**Download method:** SRA Toolkit (`fastq-dump` / prefetch). Raw `.sra` files stored in `Dataset/mammoth/ERR855944/` and `Dataset/mammoth/ERR852028/`. FASTQ exported to `Dataset/mammoth/ERR855944.fastq`.
 
 **Subsampling:** Full FASTQ is prohibitively large for iterative development. Subsampled to 5 million reads using seqtk with fixed seed for reproducibility:
 
@@ -40,9 +40,9 @@ Seed 42 used throughout for all stochastic operations.
 
 **Source:** NCBI RefSeq  
 **Accession:** GCF_024166365.1 (EanMak 1.0 / mEleMax1 primary haplotype)  
-**Stored in:** `mammoth_sra/elephant_reference/`
+**Stored in:** `Dataset/elephant_reference/`
 
-The reference FASTA used for alignment is `elephant_ref.fa` — this is a subset of the full EanMak assembly covering the chromosomal regions relevant to the target genes (TRPV3, KCNK9, HBB). The full assembly FASTA is available in `elephant_reference/ncbi_dataset/`.
+The reference FASTA used for alignment is `elephant_ref.fa` — this is a subset of the full EanMak assembly covering the chromosomal regions relevant to the target genes (TRPV3, KCNK9, HBB). The full assembly FASTA is available in `Dataset/elephant_reference/ncbi_dataset/`.
 
 BWA index built prior to alignment:
 
@@ -85,7 +85,7 @@ samtools index mammoth_ERR855944.bam
 
 99.12% mapping rate to the Asian Elephant reference is consistent with the known ~6 Myr divergence and indicates good sample quality.
 
-Output: `mammoth_sra/mammoth/mammoth_ERR855944.bam` (sorted, indexed).
+Output: `Dataset/mammoth/mammoth_ERR855944.bam` (sorted, indexed).
 
 ---
 
@@ -97,12 +97,12 @@ Output: `mammoth_sra/mammoth/mammoth_ERR855944.bam` (sorted, indexed).
 Run against the sorted BAM and reference:
 
 ```bash
-mapDamage -i mammoth/mammoth_ERR855944.bam -r elephant_reference/elephant_ref.fa
+mapDamage -i Dataset/mammoth/mammoth_ERR855944.bam -r Dataset/elephant_reference/elephant_ref.fa
 ```
 
 **Note on R plotting error:** mapDamage2's R plotting module is incompatible with R ≥ 4.x due to a deprecated `&&` operator on length-2 vectors. This causes the R-generated plots to fail but does not affect the frequency table computation. The critical output — `misincorporation.txt` — was generated successfully. Custom plotting from this table is done in Python (see `damage/visualize_damage.py`).
 
-**Outputs** (in `mammoth_sra/results/results_mammoth_ERR855944/`):
+**Outputs** (in `Dataset/results/results_mammoth_ERR855944/`):
 
 | File | Contents |
 |------|----------|
@@ -119,9 +119,9 @@ mapDamage -i mammoth/mammoth_ERR855944.bam -r elephant_reference/elephant_ref.fa
 Large binary files (raw reads, BAM, reference FASTA, genome indexes) are excluded from git — they are re-downloadable from NCBI using accessions above. See `.gitignore`.
 
 What is tracked in git:
-- `mammoth_sra/mammoth/runs.txt` — SRA accession list
-- `mammoth_sra/mammoth/md5sum.txt` — checksums
-- `mammoth_sra/results/` — mapDamage2 output tables and plots (small, result of a ~4.5 hour compute run)
+- `Dataset/mammoth/runs.txt` — SRA accession list
+- `Dataset/mammoth/md5sum.txt` — checksums
+- `Dataset/results/` — mapDamage2 output tables and plots (small, result of a ~4.5 hour compute run)
 - This documentation file
 
 ---

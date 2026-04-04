@@ -31,7 +31,7 @@ The reconstructed coding sequences are validated via ESMFold (pLDDT, TM-score vs
 
 | Role | Species | Source |
 |------|---------|--------|
-| Ancient DNA | *Mammuthus primigenius* (Woolly Mammoth) | NCBI SRA · PRJEB44109 (van der Valk et al., 2021, *Nature*) |
+| Ancient DNA | *Mammuthus primigenius* (Woolly Mammoth) | NCBI SRA · ERP008929 (Palkopoulou et al., 2015, *Current Biology*) |
 | Reference genome | *Elephas maximus* (Asian Elephant) | NCBI RefSeq · GCF_024166365.1 (EanMak 1.0) |
 
 **Target coding sequences:** TRPV3 (cold sensing), KCNK9 (temperature-gated ion channel), HBB (hemoglobin β-subunit — oxygen affinity at cold temperatures). These are the mammoth cold-adaptation genes with known functional significance.
