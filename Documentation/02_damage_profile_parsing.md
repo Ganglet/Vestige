@@ -8,29 +8,50 @@
 
 ## Objective
 
-Parse the mapDamage2 `misincorporation.txt` into numpy arrays for use by the DAM collator, produce Figure 1 (C→T / G→A frequency by position), and extract chromosomal coordinates for the three target coding sequences (TRPV3, KCNK9, HBB) from the EanMak 1.0 annotation.
+Parse mapDamage2 `misincorporation.txt` outputs from both specimens into numpy arrays for use by the DAM collator, produce Figure 1 (C→T / G→A frequency by position), and extract chromosomal coordinates for the three target coding sequences (TRPV3, KCNK9, HBB) from the EanMak 1.0 annotation.
 
 ---
 
-## 1. Damage Profile Parsing
+## 1. Alignment — ERR852028
+
+ERR852028 was aligned using identical parameters to ERR855944 (BWA-aln, `-l 16500 -n 0.01 -t 4`, subsampled to 5M reads, seed 42). Both specimens are from Palkopoulou et al. 2015.
+
+**Alignment statistics:**
+
+| Accession | Reads | Mapped | Mapping rate |
+|-----------|-------|--------|--------------|
+| ERR855944 | 5,000,000 | 4,956,238 | 99.12% |
+| ERR852028 | 5,000,000 | 4,966,693 | 99.33% |
+
+Both > 99% — consistent with the known ~6 Myr divergence from the Asian Elephant reference.
+
+---
+
+## 2. Damage Profile Parsing
 
 **Script:** `damage/parse_profiles.py`
-**Input:** `Dataset/results/results_mammoth_ERR855944/misincorporation.txt`
+**Inputs:** `Dataset/results/results_mammoth_ERR855944/misincorporation.txt`, `Dataset/results/results_mammoth_ERR852028/misincorporation.txt`
 **Output:** `damage/damage_profile.npy`
 
-The misincorporation table has 8,960 data rows — 4,480 for each terminus (5p / 3p), covering 16 chromosomes × 2 strands × 70 positions per end. Frequencies are aggregated across all chromosomes and strands by grouping on position:
+Per-specimen frequencies are aggregated across all chromosomes and strands by grouping on position:
 
 ```
 freq_C→T[pos] = Σ(C>T counts) / Σ(Total coverage)   [5p rows]
 freq_G→A[pos] = Σ(G>A counts) / Σ(Total coverage)   [3p rows]
 ```
 
-`damage_profile.npy` is a pickled dict with three keys:
+The output file stores individual profiles for both specimens plus their mean. The DAM collator reads `ct_5p` and `ga_3p` (the mean arrays).
+
+`damage_profile.npy` is a pickled dict:
 
 | Key | Shape | Contents |
 |-----|-------|----------|
-| `ct_5p` | (70,) | C→T frequency, positions 1–70 from 5′ end |
-| `ga_3p` | (70,) | G→A frequency, positions 1–70 from 3′ end |
+| `ct_5p` | (70,) | C→T frequency — mean of both specimens (used by DAM) |
+| `ga_3p` | (70,) | G→A frequency — mean of both specimens (used by DAM) |
+| `ct_5p_ERR855944` | (70,) | C→T, ERR855944 individual |
+| `ga_3p_ERR855944` | (70,) | G→A, ERR855944 individual |
+| `ct_5p_ERR852028` | (70,) | C→T, ERR852028 individual |
+| `ga_3p_ERR852028` | (70,) | G→A, ERR852028 individual |
 | `positions` | (70,) | Position index array (1..70) |
 
 **Load:**
@@ -40,32 +61,32 @@ profile = np.load("damage/damage_profile.npy", allow_pickle=True).item()
 
 ---
 
-## 2. Damage Profile Values
+## 3. Damage Profile Values
 
-| Position | C→T (5′) | G→A (3′) |
-|----------|----------|----------|
-| 1 | 0.0029 | 0.0031 |
-| 2 | 0.0020 | 0.0020 |
-| 3 | 0.0016 | 0.0016 |
-| 4 | 0.0013 | 0.0014 |
-| 5 | 0.0012 | 0.0012 |
-| 20–70 (mean) | 0.0010 | 0.0010 |
+| Position | ERR855944 C→T | ERR852028 C→T | ERR855944 G→A | ERR852028 G→A |
+|----------|--------------|--------------|--------------|--------------|
+| 1 | 0.0029 | 0.0041 | 0.0031 | 0.0042 |
+| 2 | 0.0020 | 0.0026 | 0.0020 | 0.0028 |
+| 3 | 0.0016 | 0.0021 | 0.0016 | 0.0022 |
+| 4 | 0.0013 | 0.0018 | 0.0014 | 0.0019 |
+| 5 | 0.0012 | 0.0016 | 0.0012 | 0.0016 |
+| 20–70 (mean) | 0.0010 | 0.0010 | 0.0010 | 0.0010 |
 
-End-damage elevates substitution frequency ~3× above background at position 1 and decays to baseline by position 10. The signal is real but moderate — consistent with permafrost-preserved material from a relatively young specimen.
+End-damage elevates substitution frequency ~3–4× above background at position 1 and decays to a shared baseline of 0.0010 by position ~10. ERR852028 shows slightly higher terminal damage, but both specimens converge to identical background — the damage patterns are consistent across both specimens and follow the canonical aDNA deamination signature.
 
 ---
 
-## 3. Figure 1 — Damage Frequency Plot
+## 4. Figure 1 — Damage Frequency Plot
 
 **Script:** `damage/visualize_damage.py`
 **Input:** `damage/damage_profile.npy`
 **Output:** `results/figures/fig1_damage_profile.pdf` + `.png`
 
-Two-panel figure: C→T (red, left) and G→A (blue, right) vs. read-end position. Replaces the failed R-generated `Fragmisincorporation_plot.pdf` from mapDamage2 (R ≥ 4.x incompatibility — see Phase 1 doc).
+Two-panel figure: C→T (red, left) and G→A (blue, right) vs. read-end position. Both specimens are plotted as individual lines with the mean overlaid as a solid darker line. Replaces the failed R-generated `Fragmisincorporation_plot.pdf` from mapDamage2 (R ≥ 4.x incompatibility — see Phase 1 doc).
 
 ---
 
-## 4. Gene Coordinate Extraction
+## 5. Gene Coordinate Extraction
 
 **Script:** `damage/extract_genes.py`
 **Method:** NCBI Entrez (`Bio.Entrez`) — avoids downloading the ~3 GB GFF3 annotation
@@ -87,13 +108,14 @@ EanMak 1.0 does not carry a gene annotated as `HBB`. The locus is `LOC126080006`
 
 ---
 
-## 5. Phase 1 Deliverables — Status
+## 6. Phase 1 Deliverables — Status
 
 | Deliverable | File | Status |
 |-------------|------|--------|
-| Sorted, indexed BAM | `Dataset/mammoth/mammoth_ERR855944.bam` | ✓ Done |
-| mapDamage2 misincorporation table | `Dataset/results/results_mammoth_ERR855944/misincorporation.txt` | ✓ Done |
-| Damage profile arrays | `damage/damage_profile.npy` | ✓ Done |
+| Sorted, indexed BAM (ERR855944) | `Dataset/mammoth/mammoth_ERR855944.bam` | ✓ Done |
+| Sorted, indexed BAM (ERR852028) | `Dataset/mammoth/mammoth_ERR852028.bam` | ✓ Done |
+| mapDamage2 tables | `Dataset/results/results_mammoth_ERR855944/` + `ERR852028/` | ✓ Done |
+| Damage profile arrays (both specimens + mean) | `damage/damage_profile.npy` | ✓ Done |
 | Figure 1 | `results/figures/fig1_damage_profile.pdf` | ✓ Done |
 | Gene coordinates | `damage/gene_coords.csv` | ✓ Done |
 
