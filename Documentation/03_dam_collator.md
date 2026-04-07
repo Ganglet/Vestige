@@ -79,18 +79,23 @@ The raw damage frequencies from our specimens peak at 0.35–0.41% at position 1
 
 ## 4. Unit Test
 
-**Blueprint requirement:** verify elevated masking density at terminal positions for an all-cytosine input.
+**Claim:** for an all-cytosine input, masking density is significantly elevated at terminal positions relative to central positions.
 
-Ran with a synthetic exponentially decaying damage profile (`ct_5p[i] = 0.05 × e^{−0.3i} + 0.001`), `scale_to=None`, 5,000 trials:
+**Method:** chi-squared test of independence on a 2×2 contingency table (terminal vs. central) × (masked vs. not-masked). 10,000 trials, `scale_to=None` (raw damage probabilities), synthetic exponentially decaying profile `ct_5p[i] = 0.05 × e^{−0.3i} + 0.001`.
+
+Groups:
+- Terminal: positions 1–5 (5 positions, highest expected deamination)
+- Central: positions 21–50 (30 positions, expected background)
 
 ```
-Positions  1– 5 (terminal): 0.0288
-Positions 21–40 (interior): 0.0011
-Ratio terminal / interior:  26.95×
-PASS: terminal positions have elevated masking density ✓
+Terminal masking rate (pos  1– 5):  0.03098
+Central  masking rate (pos 21–50):  0.00110
+Ratio terminal / central:           28.1×
+χ²(1) = 7154.8,  p = 0.00e+00
+PASS: masking is significantly concentrated at terminal positions (p < 0.001) ✓
 ```
 
-Run anytime:
+Assertion: `p < 0.001` and `terminal_rate > central_rate`. Run anytime:
 ```bash
 python masking/collator_dam.py
 ```
