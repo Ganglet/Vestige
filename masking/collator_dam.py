@@ -196,10 +196,11 @@ class _MockTokenizer:
 
 if __name__ == "__main__":
     import tempfile, os
+    from scipy.stats import chi2_contingency
 
     torch.manual_seed(42)
 
-    # Build a synthetic decaying damage profile
+    # Synthetic exponentially decaying damage profile
     n_pos = 70
     positions = np.arange(n_pos)
     ct_5p = 0.05 * np.exp(-0.3 * positions) + 0.001
@@ -213,14 +214,14 @@ if __name__ == "__main__":
     collator = DamageAwareDataCollator(
         tokenizer=_MockTokenizer(),
         damage_profile_path=tmp,
-        scale_to=None,   # use raw probs so the gradient is visible
+        scale_to=None,   # raw probs — gradient must be visible for the test to be meaningful
     )
     os.unlink(tmp)
 
-    # All-C batch: 1 sequence, 60 tokens, all token_id=5 ('C')
-    SEQ_LEN = 60
-    N_TRIALS = 5_000
-    inputs = torch.full((1, SEQ_LEN), 5, dtype=torch.long)
+    # All-C input: 1 sequence, 60 tokens, token_id=5 ('C')
+    SEQ_LEN  = 60
+    N_TRIALS = 10_000
+    inputs   = torch.full((1, SEQ_LEN), 5, dtype=torch.long)
 
     mask_counts = torch.zeros(SEQ_LEN)
     for _ in range(N_TRIALS):
@@ -228,17 +229,34 @@ if __name__ == "__main__":
         _, labels = collator.torch_mask_tokens(inp)
         mask_counts += (labels[0] != -100).float()
 
-    mask_freq = mask_counts / N_TRIALS
+    # Groups for chi-squared test
+    # Terminal: first 5 positions from 5' end  (highest expected damage)
+    # Central:  positions 20–49               (expected background level)
+    TERM_SLICE = slice(0, 5)
+    CENT_SLICE = slice(20, 50)
 
-    term_freq   = mask_freq[:5].mean().item()
-    mid_freq    = mask_freq[20:40].mean().item()
+    n_term = TERM_SLICE.stop - TERM_SLICE.start   # 5
+    n_cent = CENT_SLICE.stop - CENT_SLICE.start   # 30
 
-    print("Masking frequency — all-C input, raw damage probs, no scaling:")
-    print(f"  Positions  1– 5 (terminal): {term_freq:.4f}")
-    print(f"  Positions 21–40 (interior): {mid_freq:.4f}")
-    print(f"  Ratio terminal/interior:    {term_freq/mid_freq:.2f}×")
+    term_masked   = int(mask_counts[TERM_SLICE].sum().item())
+    term_unmasked = N_TRIALS * n_term - term_masked
+    cent_masked   = int(mask_counts[CENT_SLICE].sum().item())
+    cent_unmasked = N_TRIALS * n_cent - cent_masked
 
-    assert term_freq > mid_freq * 1.5, (
-        f"FAIL: terminal freq ({term_freq:.4f}) should be >1.5× interior ({mid_freq:.4f})"
-    )
-    print("PASS: terminal positions have elevated masking density ✓")
+    # 2×2 contingency table: [terminal, central] × [masked, not-masked]
+    table = [[term_masked, term_unmasked],
+             [cent_masked, cent_unmasked]]
+    chi2, p, dof, expected = chi2_contingency(table)
+
+    term_rate = mask_counts[TERM_SLICE].mean().item() / N_TRIALS
+    cent_rate = mask_counts[CENT_SLICE].mean().item() / N_TRIALS
+
+    print("Chi-squared test — masking distribution, all-C input, raw damage probs:")
+    print(f"  Terminal masking rate (pos  1– 5): {term_rate:.5f}")
+    print(f"  Central  masking rate (pos 21–50): {cent_rate:.5f}")
+    print(f"  Ratio terminal / central:          {term_rate / cent_rate:.1f}×")
+    print(f"  χ²({dof}) = {chi2:.1f},  p = {p:.2e}")
+
+    assert p < 0.001, f"FAIL: p = {p:.2e} — not significant at α = 0.001"
+    assert term_rate > cent_rate, "FAIL: terminal rate should exceed central rate"
+    print("PASS: masking is significantly concentrated at terminal positions (p < 0.001) ✓")
