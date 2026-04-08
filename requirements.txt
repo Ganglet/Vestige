@@ -1,0 +1,38 @@
+# Phoenix-LM — Python dependencies
+# Tested on macOS (M1 Pro, Python 3.12)
+#
+# Install:
+#   pip install -r requirements.txt
+#
+# mapDamage2 must be installed via conda (bioconda channel), not pip:
+#   conda install -c bioconda mapdamage2==2.1.1
+#
+# External binaries (install separately):
+#   brew install bwa samtools
+#   brew install sra-tools          # for fastq-dump / prefetch
+#   conda install -c bioconda seqtk
+
+# ── Core ML stack ─────────────────────────────────────────────────────────────
+torch==2.8.0
+transformers==4.57.1
+datasets==4.5.0
+accelerate==1.13.0
+
+# ── Bioinformatics ─────────────────────────────────────────────────────────────
+biopython==1.87
+
+# ── Data / numerics ───────────────────────────────────────────────────────────
+numpy==1.26.4
+pandas==2.2.3
+scipy==1.14.0
+
+# ── Visualisation ─────────────────────────────────────────────────────────────
+matplotlib==3.8.4
+
+# ── Config & utils ────────────────────────────────────────────────────────────
+pyyaml==6.0.2
+
+# ── Transformers compatibility shim ───────────────────────────────────────────
+# Required because transformers imports TF integration at load time.
+# Keras 3 (installed by tensorflow) is not yet supported by transformers.
+tf-keras==2.21.0
