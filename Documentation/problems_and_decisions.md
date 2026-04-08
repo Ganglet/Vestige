@@ -172,3 +172,29 @@ ERR852028 shows slightly higher terminal damage (consistent with its greater age
 **Why not a t-test:** A t-test on per-position masking rates would also work, but chi-squared on raw counts is more powerful here — we have large counts (N_TRIALS × n_positions) and the test directly addresses the distributional question rather than comparing means.
 
 **Paper relevance:** The test result can be cited in the Methods section as validation that the collator implements the intended masking gradient — *"correct operation was verified by a chi-squared test of independence on masking position counts (χ²(1) = 7154.8, p < 10⁻³)"*.
+
+---
+
+## P12 — Three Dependency Failures on First Training Run
+
+**Phase:** 2 — Training
+**Where it surfaced:** First execution of `training/train.py`
+
+Three separate import/runtime errors hit in sequence:
+
+**P12a — `tf_keras` missing:**
+`transformers` imports TF integration at load time. Keras 3 (installed by tensorflow) is not backward-compatible with this integration layer. Fix: `pip install tf-keras==2.21.0`. Added to `requirements.txt` with an explanatory comment.
+
+**P12b — `accelerate` missing:**
+`Trainer` requires `accelerate>=0.26.0` for the PyTorch backend. It is not pulled in automatically by `pip install transformers`. Fix: `pip install "accelerate>=0.26.0"`. Added to `requirements.txt`.
+
+**P12c — `use_mps_device` deprecated:**
+`TrainingArguments(use_mps_device=True)` was removed in a recent `transformers` version — the Trainer now detects MPS automatically via `accelerate`. Passing the argument raises a TypeError. Fix: removed the argument from `train.py`. MPS is used automatically on Apple Silicon when `accelerate` is installed.
+
+**P12e — Training wall-clock time severely underestimated:**
+Benchmark predicted ~6 hrs for 20 epochs at batch size 8 (29s/step × 700 steps). Actual runtime: **11 hours 24 minutes** per run. The discrepancy is from the benchmark using a vanilla BERT config without DNABERT-2's custom MosaicBERT attention layers, which add overhead even in PyTorch fallback mode, plus MPS memory management overhead not visible in short benchmarks. Total wall time for both runs: ~23 hours. Plan accordingly — start each run before sleep.
+
+**P12d — `triton` unavailable on macOS:**
+DNABERT-2's `bert_layers.py` imports `triton` at module load time. `triton` is a CUDA-only library with no macOS build. Fix: stub the module before any transformers import using a `ModuleSpec`-backed `types.ModuleType`. The model falls back to standard PyTorch attention with a warning — no accuracy impact.
+
+**Reproducibility note:** All four fixes are encoded in `requirements.txt` and `train.py`. A fresh install from `requirements.txt` + the mapDamage2 conda install will not hit these errors again.
