@@ -125,6 +125,7 @@ class DamageAwareDataCollator(DataCollatorForLanguageModeling):
         self,
         inputs: torch.Tensor,
         special_tokens_mask: Optional[torch.Tensor] = None,
+        **kwargs,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         labels = inputs.clone()
 
