@@ -38,7 +38,8 @@ Run two controlled fine-tuning experiments on DNABERT-2 using the TRPV3/KCNK9/HB
 |--|-------|-------|
 | **Config** | `config_mlm.yaml` | `config_dam.yaml` |
 | **Collator** | `MLMCollator` — 15% uniform random masking | `DamageAwareDataCollator` — position/base-conditioned masking, scaled to 15% mean |
-| **W&B run** | `mlm-baseline` | `dam-proposed` |
+| **W&B run** | [`mlm-baseline`](https://wandb.ai/angshumanchakravertty-svkm-s-narsee-monjee-institute-of-/phoenix-lm/runs/vfdklmzb) | [`dam-proposed`](https://wandb.ai/angshumanchakravertty-svkm-s-narsee-monjee-institute-of-/phoenix-lm/runs/oun1npv4) |
+| **W&B project** | [`phoenix-lm`](https://wandb.ai/angshumanchakravertty-svkm-s-narsee-monjee-institute-of-/phoenix-lm) | ← same |
 
 ---
 
