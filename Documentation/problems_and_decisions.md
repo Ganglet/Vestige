@@ -197,4 +197,7 @@ Benchmark predicted ~6 hrs for 20 epochs at batch size 8 (29s/step × 700 steps)
 **P12d — `triton` unavailable on macOS:**
 DNABERT-2's `bert_layers.py` imports `triton` at module load time. `triton` is a CUDA-only library with no macOS build. Fix: stub the module before any transformers import using a `ModuleSpec`-backed `types.ModuleType`. The model falls back to standard PyTorch attention with a warning — no accuracy impact.
 
-**Reproducibility note:** All four fixes are encoded in `requirements.txt` and `train.py`. A fresh install from `requirements.txt` + the mapDamage2 conda install will not hit these errors again.
+**P12f — `offset_mapping` unexpected keyword in `torch_mask_tokens`:**
+Newer versions of `transformers` pass `offset_mapping=None` as a keyword argument to `torch_mask_tokens()`. Our override signature didn't accept it, causing a `TypeError` on the first DAM training step. Fix: added `**kwargs` to the override signature. The argument is unused — it carries subword-to-character offset data irrelevant to our masking logic.
+
+**Reproducibility note:** All fixes are encoded in `requirements.txt` and `train.py`. A fresh install from `requirements.txt` + the mapDamage2 conda install will not hit these errors again.
