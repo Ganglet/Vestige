@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 RUNS = {
     "MLM baseline": "training/checkpoints/mlm-baseline/checkpoint-700/trainer_state.json",
-    "DAM proposed": "training/checkpoints/dam-proposed/checkpoint-700/trainer_state.json",
+    "DAM proposed": "training/checkpoints/dam-proposed/checkpoint-700/trainer_state.json",  # final epoch; best is 595 but 700 has full history
 }
 COLORS = {
     "MLM baseline": {"train": "#2980b9", "eval": "#1a5276"},

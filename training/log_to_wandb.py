@@ -14,17 +14,19 @@ import wandb
 WANDB_PROJECT = "phoenix-lm"
 
 RUNS = [
+    # MLM baseline already logged (run ID: vfdklmzb) — uncomment to re-log if needed
+    # {
+    #     "run_name":    "mlm-baseline",
+    #     "state_path":  "training/checkpoints/mlm-baseline/checkpoint-700/trainer_state.json",
+    #     "config_path": "training/config_mlm.yaml",
+    #     "collator":    "DataCollatorForLanguageModeling (uniform 15%)",
+    # },
     {
-        "run_name":    "mlm-baseline",
-        "state_path":  "training/checkpoints/mlm-baseline/checkpoint-700/trainer_state.json",
-        "config_path": "training/config_mlm.yaml",
-        "collator":    "DataCollatorForLanguageModeling (uniform 15%)",
-    },
-    {
-        "run_name":    "dam-proposed",
+        # Corrected DAM run: baseline_prob=0, C/G-only scaling, retrained 2026-04-11
+        "run_name":    "dam-proposed-corrected",
         "state_path":  "training/checkpoints/dam-proposed/checkpoint-700/trainer_state.json",
         "config_path": "training/config_dam.yaml",
-        "collator":    "DamageAwareDataCollator (damage-conditioned, scaled to 15%)",
+        "collator":    "DamageAwareDataCollator (baseline_prob=0, C/G-only scaling, scale_to=0.15)",
     },
 ]
 
@@ -44,7 +46,10 @@ COMMON_CONFIG = {
     "window_bp":              2000,
     "stride_bp":              200,
     "hardware":               "Apple M1 Pro (MPS)",
-    "wall_clock_hours":       11.4,
+    "wall_clock_hours":       14.53,
+    "baseline_prob":          0.0,
+    "scale_to":               0.15,
+    "note":                   "Corrected collator — original run (oun1npv4) had baseline_prob=0.03 bug",
 }
 
 import yaml
