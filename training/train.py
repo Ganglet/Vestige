@@ -57,7 +57,7 @@ def build_collator(cfg: dict, tokenizer):
         return DamageAwareDataCollator(
             tokenizer=tokenizer,
             damage_profile_path="damage/damage_profile.npy",
-            baseline_prob=0.03,
+            baseline_prob=0.0,   # A/T never masked — only C/G positions trained
             scale_to=0.15,
         )
     raise ValueError(f"Unknown collator: {cfg['collator']}")
