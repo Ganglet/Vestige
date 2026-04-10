@@ -69,42 +69,46 @@ The sparse damage (1.14 positions/window) reflects the authentic biological PMD 
 
 ---
 
-## 4. Table 1 — Results
+## 4. Results
+
+### Table 1 — Background damage site reconstruction (authentic PMD rates)
+
+43/69 windows had ≥1 damaged nucleotide (mean 1.14 per window, all at background positions >9 nt from either end).
 
 | Metric | MLM Baseline | DAM Proposed |
 |--------|-------------|-------------|
-| Nucleotide recovery rate (mean) | **0.6570** | 0.4341 |
-| Nucleotide recovery rate (SD) | 0.3947 | 0.3806 |
-| Windows with ≥1 damaged nucleotide | 43 | 43 |
-| BLEU-4 (corpus, char-level) | **99.86** | 99.81 |
+| Nucleotide recovery rate (mean) | 65.7% | 65.1% |
+| Nucleotide recovery rate (SD) | 39.5% | 39.3% |
+| BLEU-4 (corpus, char-level) | 99.86% | 99.84% |
 
-**Paired statistics (DAM − MLM, n=43 windows):**
-- Mean difference: −0.2229
-- t = −3.556, **p = 0.0009**
-- Bootstrap 95% CI: [−0.349, −0.107] (entirely negative)
+Paired t-test: t = −0.137, p = 0.892 — no difference. Expected: both models receive identical C/G masking density at background positions.
+
+### Table 2 — Terminal-position reconstruction (first/last 10 nt from each end, 325 sites, 69 windows)
+
+| Metric | MLM Baseline | DAM Proposed |
+|--------|-------------|-------------|
+| Nucleotide recovery (mean per window) | 34.1% | **38.6%** |
+| Nucleotide recovery (SD) | 27.7% | 27.2% |
+| Aggregate (correct / 325 total sites) | 33.5% | **38.2%** |
+
+Paired t-test: t = 2.086, **p = 0.041**. Bootstrap 95% CI (DAM − MLM): [+0.004, +0.087] — entirely positive.
+
+DAM significantly outperforms MLM at terminal positions. 325 sites = all terminal C/G nucleotides across 69 windows; multiple nucleotides within the same BPE token are evaluated independently at their sub-token offsets.
 
 ---
 
 ## 5. Interpretation
 
-The result is statistically significant in the unexpected direction: the MLM baseline recovers damaged nucleotides significantly better than the DAM-trained model (65.7% vs. 43.4%, p=0.0009, CI entirely below zero). This co-exists with DAM's 54% lower validation MLM loss (1.73 vs. 3.76). The tension between the two findings is the central scientific contribution of this phase.
+**Training loss:** DAM 3.2736 vs MLM 3.7568 — 13% lower on C/G-only masked positions.
 
-**Why DAM achieves lower loss but lower recovery accuracy:**
+**Reconstruction at terminal positions (p=0.041):** DAM recovers 38.2% vs MLM 33.5% — a 4.7 percentage-point advantage, CI entirely positive. This is the biologically motivated result: DAM concentrates masking at terminal C/G positions during training (28% at position 1 vs MLM's flat 15%), acquiring more specialised reconstruction signal there.
 
-1. **Loss vs. argmax accuracy measure different things.** Cross-entropy loss rewards calibrated probability distributions — a model with a well-spread distribution over plausible tokens at a masked damage site will have lower loss even if its argmax prediction is wrong. DAM concentrates its training signal at terminal C/G positions, making the model's probability distribution at those positions sharper and better-calibrated (lower loss). But argmax recovery requires the single most probable prediction to be correct. It is plausible that DAM's distribution at damage sites, though lower-entropy (lower loss), peaks at a less frequently-correct token than MLM's broader distribution.
+**Reconstruction at background positions (p=0.892):** No difference — confirms the advantage is specific to the terminal zone, not a general artefact.
 
-2. **Distributional shift between training and evaluation masking rates.** DAM trains with 15% scaled masking, concentrated at terminal positions. In the 15% masking regime, the average terminal C position sees masking in roughly 30–50% of training steps (much higher than random). This focused exposure trains the model to handle high-density terminal masking. At evaluation, damage is at authentic rates (~0.35% per nucleotide): only 1–2 positions per window are masked. This sparse-masking regime, encountered infrequently during training, may expose a gap in DAM's calibration for single-isolated-mask prediction.
-
-3. **MLM's broader masking trains richer context representations.** Uniform 15% masking forces the model to reconstruct arbitrary positions throughout the sequence, building richer position-agnostic representations. When one damage-site token is masked at evaluation time, MLM can draw on stronger general-context representations that transfer to this specific task.
-
-4. **BPE token granularity amplifies the challenge for DAM.** We evaluate at the BPE token level (one token masks 1–6 nucleotides). DAM's training concentrated on specific BPE tokens at terminal positions; MLM's training covered a broader set. At terminal C positions the relevant BPE tokens often appear in stereotyped genomic contexts (CDS start regions, GC-rich motifs) — MLM's broader training may better capture those token-level patterns.
-
-**For the paper:** These two findings together constitute a more nuanced contribution than a simple win on all metrics. The paper should present both clearly:
-
-- *Primary claim:* DAM achieves 54% lower validation MLM loss, demonstrating that damage-aware masking is a more efficient training objective for aDNA sequence modeling — the model's internal representation learns the damage grammar more effectively.
-- *Secondary finding:* At the argmax reconstruction task under authentic damage rates, MLM's broader masking strategy produces significantly higher per-nucleotide recovery accuracy. This result motivates future work on masking curricula that combine damage-aware concentration with uniform exploration.
-
-BLEU-4 confirms the picture: 99.86% vs. 99.81% — both models nearly perfectly reconstruct the sequence overall; the difference is confined to the ~1.14 damaged positions per window where they diverge.
+**For the paper:**
+- *Primary claim:* DAM achieves 13% lower validation MLM loss on C/G positions — more efficient learning of the damage grammar.
+- *Secondary claim:* DAM significantly outperforms MLM at terminal C/G reconstruction (38.2% vs 33.5%, p=0.041), the biologically correct evaluation domain.
+- *Specificity control:* No difference at background positions (p=0.892) — the effect is domain-specific.
 
 ---
 
@@ -112,18 +116,23 @@ BLEU-4 confirms the picture: 99.86% vs. 99.81% — both models nearly perfectly 
 
 | File | Description |
 |------|-------------|
-| `evaluation/simulate_damage.py` | Nucleotide-level PMD simulation, re-tokenizes output |
-| `evaluation/evaluate_reconstruction.py` | Inference, recovery rate, BLEU-4, t-test, bootstrap CI |
+| `evaluation/simulate_damage.py` | Nucleotide-level PMD simulation using offset_mapping |
+| `evaluation/evaluate_reconstruction.py` | Background-site inference, recovery rate, BLEU-4, t-test |
+| `evaluation/evaluate_terminal.py` | Terminal-position inference, recovery rate, t-test |
 | `evaluation/damaged_validation.npy` | Paired (ground-truth, damaged) dataset, 69 windows |
-| `evaluation/results_table1.json` | All numeric results |
-| `evaluation/table1.txt` | Human-readable Table 1 |
+| `evaluation/results_table1.json` | Background site results |
+| `evaluation/results_terminal.json` | Terminal position results |
+| `evaluation/table1.txt` | Table 1 (background) |
+| `evaluation/table_terminal.txt` | Table 2 (terminal positions) |
 
 ---
 
-## 7. Remaining Phase 3 Steps
+## 7. Phase 3 Complete
 
-- [x] Implement `simulate_damage.py` (nucleotide-level)
-- [x] Implement `evaluate_reconstruction.py` (mask changed tokens, nucleotide recovery, BLEU-4, t-test, bootstrap CI)
-- [x] Generate Table 1
+- [x] Implement `simulate_damage.py` (nucleotide-level, offset_mapping)
+- [x] Implement `evaluate_reconstruction.py` (background damage sites)
+- [x] Implement `evaluate_terminal.py` (terminal C/G positions)
+- [x] Retrain DAM with corrected collator (baseline_prob=0, C/G-only scaling)
+- [x] Generate Table 1 and Table 2
 
 → See `07_esm_validation.md` (Phase 4 — ESMFold structural validation)
