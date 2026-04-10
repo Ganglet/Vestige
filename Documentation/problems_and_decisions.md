@@ -201,3 +201,76 @@ DNABERT-2's `bert_layers.py` imports `triton` at module load time. `triton` is a
 Newer versions of `transformers` pass `offset_mapping=None` as a keyword argument to `torch_mask_tokens()`. Our override signature didn't accept it, causing a `TypeError` on the first DAM training step. Fix: added `**kwargs` to the override signature. The argument is unused — it carries subword-to-character offset data irrelevant to our masking logic.
 
 **Reproducibility note:** All fixes are encoded in `requirements.txt` and `train.py`. A fresh install from `requirements.txt` + the mapDamage2 conda install will not hit these errors again.
+
+---
+
+## P13 — BPE Tokenization Cascade: Token-Diff Masking Masks ~30 Tokens per 2 Damaged Nucleotides
+
+**Phase:** 3 — Evaluation
+**Where it surfaced:** Debugging the second version of `evaluate_reconstruction.py` (after fixing P13's token-substitution bug). Spotted by auditing: 2 damaged nucleotides produced 31 changed token positions between `gt_ids` and `dam_ids`.
+
+**Problem:** The second implementation of `evaluate_reconstruction.py` found changed token positions by diffing `gt_ids` vs. `dam_ids` (the re-tokenized damaged sequence). BPE tokenization is context-sensitive: changing one nucleotide causes the tokenizer to choose different segment boundaries for a large surrounding region. 2 substituted nucleotides → 31 different token positions. Masking all 31 positions asks the model to reconstruct ~150 nucleotides from context when only 2 are actually damaged. The evaluation was measuring something entirely different from claimed.
+
+**Root cause:** BPE tokenization is not positionally local. Changing character `i` can alter token boundaries from position `i` all the way to the next segment anchor, potentially many tokens ahead.
+
+**Fix:** Use `offset_mapping` from the tokenizer to directly map each damaged nucleotide position (0-based in the raw DNA string) to the single BPE token in the ORIGINAL tokenization that spans that character. Mask only those 1–2 token positions in `gt_ids`. Never re-tokenize the damaged sequence.
+
+**Correct pipeline:**
+1. `simulate_damage.py`: decode `gt_ids` → DNA, apply damage, use `offset_mapping` on original tokenization to map `nuc_pos → tok_pos`. Store `nuc_damaged` (list of nucleotide positions) and `tok_damaged` (deduplicated token positions).
+2. `evaluate_reconstruction.py`: mask only `tok_damaged` in `gt_ids`, run model, decode predicted token at each position, check the character at the sub-token offset.
+
+Result after fix: 1.14 damaged tokens per window (matching 1.14 damaged nucleotides — each falls in exactly one token). BLEU-4 rose from 88% to 99.86%, consistent with only ~1.14 characters changing per 2000-character sequence.
+
+**Paper relevance:** Demonstrates that BPE cascade is a non-obvious failure mode for any evaluation involving sequence-level substitution + token-level comparison. The correct method requires offset_mapping to preserve the original tokenization and mask only the affected tokens.
+
+---
+
+## P14 — MLM Significantly Outperforms DAM on Nucleotide Recovery (p=0.0009)
+
+**Phase:** 3 — Evaluation
+**Where it surfaced:** `evaluate_reconstruction.py` corrected results.
+
+**Result:** MLM baseline recovery rate 65.7% ± 39.5% vs. DAM 43.4% ± 38.1%. Paired t-test: t=−3.556, p=0.0009. Bootstrap 95% CI: [−0.349, −0.107] — entirely negative, strongly significant. MLM is the better model for per-nucleotide reconstruction at authentic damage sites.
+
+**This co-exists with DAM's 54% lower validation MLM loss (1.73 vs. 3.76).** The two findings together constitute the paper's most interesting result.
+
+**Mechanistic explanation:**
+- *Loss vs. argmax:* CE loss rewards calibrated probability distributions. DAM's focused masking produces a sharper, lower-CE distribution at terminal C/G positions but that does not mean its argmax prediction is more often correct.
+- *Distributional shift:* Training used 15% masking (scaled). Evaluation has ~0.08% damage per nucleotide (authentic rates). At this sparse-masking regime, MLM's broad training generalizes better.
+- *Richer representations:* MLM's uniform masking builds position-agnostic context representations across the full sequence. DAM's focused signal concentrates on terminal tokens, potentially at the cost of general-purpose token reconstruction ability.
+
+**Decision:** Present both findings honestly in the paper. Primary claim: DAM is a more efficient training objective for learning the damage grammar (54% lower loss). Secondary finding: under authentic damage rates at evaluation, MLM reconstructs individual damaged nucleotides significantly more accurately. Proposed future direction: masking curricula combining damage-aware concentration with uniform exploration.
+---
+
+## P15 — DAM Collator: baseline_prob Dominates scale_to, Crushing C/G Masking to ~1%
+
+**Phase:** 3 — Evaluation (discovered during audit of P14 result)
+**Where it surfaced:** Auditing per-base masking probabilities output by `_prob_matrix()`.
+
+**Problem:** `scale_to=0.15` scales the mean masking probability over **all tokens** in the sequence. A/T tokens outnumber C/G roughly 2:1 in genomic sequences. With `baseline_prob=0.03`, A/T dominate the mean. Raw C→T damage rates (~0.003 at position 1) are near-zero by comparison. The scaler crushes C/G masking to ~1% while inflating A/T to ~33%:
+
+| Base | Actual masking (original DAM run) |
+|------|----------------------------------|
+| A/T  | **32.95%** — massively over-masked |
+| C/G  | **~1.1%** — nearly never masked |
+| Terminal C pos 1 | **2.1%** |
+
+MLM masked C/G at 15%. The original DAM model had 13× less C/G training signal than MLM — the opposite of the intended design. This is why P14 shows DAM worse at C/G reconstruction.
+
+**Fix:**
+1. `baseline_prob=0.0` — A/T never masked. Biologically correct (no deamination at A/T). Evaluation never tests A/T so no impact on results.
+2. Scale over C/G positions only: replace `prob.mean()` with `prob[is_C | is_G].mean()` in `_prob_matrix()`. C/G now average exactly 15%, with the damage gradient on top.
+
+**Result after fix:**
+
+| Base | Fixed DAM | MLM |
+|------|----------|-----|
+| A/T  | 0% | 15% |
+| C/G  | ~15% avg | 15% flat |
+| Terminal C pos 1 | **28%** | 15% |
+| Interior C (pos 130) | **14.8%** | 15% |
+
+C/G get the same total masking density as MLM. The damage gradient is the only difference — which is the contribution.
+
+**Files changed:** `masking/collator_dam.py` (`_prob_matrix` scaling), `training/train.py` (`baseline_prob=0.0`).
+**Retraining required:** DAM run only (~11h 24min). Old checkpoints archived to `dam-proposed-baseline_prob_0.03_ARCHIVED/`.
