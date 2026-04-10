@@ -38,7 +38,7 @@ Run two controlled fine-tuning experiments on DNABERT-2 using the TRPV3/KCNK9/HB
 |--|-------|-------|
 | **Config** | `config_mlm.yaml` | `config_dam.yaml` |
 | **Collator** | `MLMCollator` — 15% uniform random masking | `DamageAwareDataCollator` — position/base-conditioned masking, scaled to 15% mean |
-| **W&B run** | [`mlm-baseline`](https://wandb.ai/angshumanchakravertty-svkm-s-narsee-monjee-institute-of-/phoenix-lm/runs/vfdklmzb) | `dam-proposed` (corrected run — not yet logged to W&B) |
+| **W&B run** | [`mlm-baseline`](https://wandb.ai/angshumanchakravertty-svkm-s-narsee-monjee-institute-of-/phoenix-lm/runs/vfdklmzb) | [`dam-proposed-corrected`](https://wandb.ai/angshumanchakravertty-svkm-s-narsee-monjee-institute-of-/phoenix-lm/runs/902snvdh) |
 | **W&B project** | [`phoenix-lm`](https://wandb.ai/angshumanchakravertty-svkm-s-narsee-monjee-institute-of-/phoenix-lm) | ← same |
 
 ---
@@ -146,8 +146,8 @@ See `problems_and_decisions.md` P12 for the full account. Summary:
 - [x] Write `train.py`, `config_mlm.yaml`, `config_dam.yaml`
 - [x] Run 1 — MLM baseline (20 epochs, best eval loss 3.7568)
 - [x] Run 2 — DAM proposed corrected (best eval loss 3.2736, epoch 17)
-- [ ] Regenerate Figure 2 with corrected DAM curve
-- [ ] Log corrected DAM run to W&B
-- **DELIVERABLE complete.** Two model checkpoints ready. Phase 3 complete. Figure 2 and W&B pending.
+- [x] Regenerate Figure 2 with corrected DAM curve (`results/figures/fig2_training_curves.pdf`)
+- [x] Log corrected DAM run to W&B (run ID: 902snvdh, name: `dam-proposed-corrected`)
+- **DELIVERABLE complete.** Two model checkpoints, Figure 2, W&B logged. Phase 3 complete.
 
 → See `06_evaluation.md`
