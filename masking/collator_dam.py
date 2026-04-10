@@ -111,7 +111,10 @@ class DamageAwareDataCollator(DataCollatorForLanguageModeling):
         prob = torch.where(is_G, ga_row, prob)
 
         if self.scale_to is not None:
-            mean_p = prob.mean()
+            # Scale over C/G positions only — A/T are 0 and must not dilute the mean.
+            # This ensures C/G average exactly scale_to, with the damage gradient preserved.
+            cg_mask = is_C | is_G
+            mean_p = prob[cg_mask].mean() if cg_mask.any() else prob.mean()
             if mean_p > 0:
                 prob = (prob * (self.scale_to / mean_p)).clamp(max=1.0)
 
