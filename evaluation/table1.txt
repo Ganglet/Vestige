@@ -1,0 +1,17 @@
+
+Table 1 — Reconstruction evaluation on 69 validation windows
+==============================================================
+Metric                                 MLM Baseline DAM Proposed
+--------------------------------------------------------------
+Nucleotide recovery rate (mean)             0.6570      0.6512
+Nucleotide recovery rate (SD)               0.3947      0.3934
+Windows with ≥1 damaged nucleotide              43          43
+BLEU-4 (corpus, char-level)                  99.86       99.84
+--------------------------------------------------------------
+
+Paired statistics (DAM − MLM, n=43 windows):
+  Mean difference:   -0.0058
+  t-statistic:       -0.1369
+  p-value:           0.8917
+  Bootstrap 95% CI:  [-0.0891, +0.0775]
+==============================================================

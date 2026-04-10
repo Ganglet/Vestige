@@ -1,0 +1,18 @@
+
+Table 2 — Terminal-position reconstruction (10 nt from 5'/3' ends)
+==================================================================
+Metric                                     MLM Baseline DAM Proposed
+------------------------------------------------------------------
+Nucleotide recovery (mean over windows)         0.3408      0.3856
+Nucleotide recovery (SD)                        0.2770      0.2724
+Aggregate (correct / total sites)               0.3354      0.3815
+Total sites evaluated                              325         325
+Windows contributing                                69          69
+------------------------------------------------------------------
+
+Paired statistics (DAM − MLM, n=69 windows):
+  Mean difference:   +0.0448
+  t-statistic:       2.0861
+  p-value:           0.0407
+  Bootstrap 95% CI:  [+0.0043, +0.0869]
+==================================================================
