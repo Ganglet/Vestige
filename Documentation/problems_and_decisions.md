@@ -305,11 +305,94 @@ No significant difference at background positions — expected, since both model
 
 | Metric | MLM | DAM |
 |--------|-----|-----|
-| Nucleotide recovery (mean) | 39.9% | **44.3%** |
-| Aggregate (correct/total) | 41.0% | **44.3%** |
-| p-value | 0.0861 | — |
-| Bootstrap 95% CI (DAM−MLM) | [−0.005, +0.098] | — |
+| Nucleotide recovery (mean) | 34.1% | **38.6%** |
+| Aggregate (correct/total) | 33.5% | **38.2%** |
+| p-value | **0.041** | — |
+| Bootstrap 95% CI (DAM−MLM) | [+0.004, +0.087] | — |
 
-DAM outperforms MLM at terminal positions (the intended domain). p=0.086 is below the conventional 0.05 threshold. The effect size is real but the test is underpowered — 69 windows yields n=69 paired observations. Power analysis suggests ~200 windows needed for p<0.05 at this effect size.
+DAM significantly outperforms MLM at terminal positions (p = 0.041, CI entirely positive). This is the biologically correct evaluation domain — the positions where DAM concentrated its masking probability during training.
 
-**Interpretation:** The corrected DAM implementation produces the intended result — higher recovery at terminal C/G positions where aDNA damage concentrates. The 13% loss improvement and positive terminal reconstruction trend together support the paper's core claim. Underpowered statistics are an honest limitation to report.
+**Note:** An earlier version of this entry showed p = 0.086 / 39.9% vs 44.3% — those were from a pre-retraining run where `evaluate_terminal.py` was still using `checkpoint-595` from the broken DAM (archived). The numbers above are from the final corrected DAM checkpoint and match `evaluate_scaling.py` at T_END=10 exactly (cross-validation passed).
+
+---
+
+## P17 — fetch_cds.py: mRNA[Feature Key] Returned Genomic NC_* Records
+
+**Phase:** 4 — CDS fetching
+**Where it surfaced:** `protein/fetch_cds.py` first run — NCBI returned NC_* (genomic chromosome) records instead of NM_*/XM_* mRNA records.
+
+**Problem:** The initial query used `esearch` on the nucleotide database with `mRNA[Feature Key]` as a filter. NCBI's nucleotide database includes genomic records that contain mRNA features as sub-annotations. The search returned chromosome-level accessions (NC_*) that carry the gene as one of many features — not the spliced mRNA transcript itself.
+
+**Fix:** Switched to a two-step approach:
+1. `esearch` on the Gene database for the gene name + organism
+2. `elink` with `gene_nuccore_refseqrna` to get associated RefSeq mRNA records
+3. `efetch` the individual mRNA accessions; skip any NC_* or NW_* records
+
+This reliably returns NM_*/XM_* mRNA records, from which the CDS feature is extracted.
+
+**Results:** TRPV3 → XM_049859879.1 (2376 nt, 791 aa), KCNK9 → XM_049854616.1 (1044 nt, 347 aa), HBB → XM_049891336.1 (489 nt, 162 aa).
+
+---
+
+## P18 — HBB Produces 0 Damaged Positions at 10× PMD Scale
+
+**Phase:** 4 — damage_reconstruct_cds.py
+**Where it surfaced:** First run of `damage_reconstruct_cds.py` — HBB CDS produced 0 damaged positions.
+
+**Problem:** The HBB CDS is only 489 nt long. At 10× authentic PMD rates, peak C→T probability at position 1 is ~3.5%. The expected number of damaged positions at the 5′ end is proportional to CDS length × base frequency × peak probability. For HBB (489 nt, ~25% C at 5′ end), this works out to ~0.4 expected damaged positions — near zero on any single run (stochastic draw from Bernoulli).
+
+**Fix:** Per-gene `DAMAGE_SCALE_PER_GENE` dict: `{"TRPV3": 10, "KCNK9": 10, "HBB": 30}`. At 30×, HBB peak C→T becomes ~10.5%, giving ~1.3 expected damaged positions — reliably ≥1 across runs.
+
+**Paper note:** The Methods section notes that damage was amplified 10–30× authentic rates to ensure ≥1 damaged position per gene for meaningful comparison. This is standard for controlled in silico experiments (amplified rates are disclosed, not used to inflate claims).
+
+---
+
+## P19 — ESMFold Local Download: 2h+ / 8.44 GB / 403 Errors
+
+**Phase:** 4 — run_esmfold.py
+**Where it surfaced:** First version of `run_esmfold.py` used `EsmForProteinFolding.from_pretrained("facebook/esmfold_v1")`.
+
+**Problem:** The model is ~2.7 GB of ESM-2 weights + ~1.5 GB of folding trunk = ~4.2 GB total, but HuggingFace also downloads tokenizer and auxiliary files. Download started at ~61% after 2 hours then hit a 403 (rate limit / quota). Model was killed.
+
+**Decision:** Rewrote to use the ESMFold public REST API (`https://api.esmatlas.com/foldSequence/v1/pdb/`). No model download needed. Latency is ~60–120 seconds per sequence. Total time for 9 proteins: ~15 min (vs. 2h+ download + unbounded compute).
+
+**Tradeoff:** REST API has a ~600 aa limit per request. TRPV3 (791 aa) required truncation (see P20). The API is also rate-limited and occasionally returns 503; handled with 3-attempt retry + 5-second backoff.
+
+---
+
+## P20 — TRPV3 HTTP 413 from ESMFold API (791 aa Exceeds Limit)
+
+**Phase:** 4 — run_esmfold.py
+**Where it surfaced:** ESMFold API returned HTTP 413 (payload too large) for TRPV3 full-length sequence.
+
+**Problem:** ESMFold REST API rejects sequences > ~600 aa. TRPV3 is 791 aa.
+
+**Decision:** Truncate TRPV3 to the N-terminal ankyrin repeat domain (aa 1–400). Biologically justified: the 5′ PMD damage maps to aa 1–8 (the first 24 nt of the CDS). The 3′ damage maps to aa 784–791, which are outside the truncated domain — those residues are excluded from the structural comparison and noted in the paper.
+
+**Implementation:** `TRUNCATE = {"TRPV3": 400}` dict in `run_esmfold.py`. The table footnote clarifies: *"† TRPV3 folded on N-terminal ankyrin repeat domain (aa 1–400); full-length 791 aa exceeds ESMFold API limit."*
+
+---
+
+## P21 — ESMFold B-factor Column in 0–1 Scale (Not 0–100)
+
+**Phase:** 4 — run_esmfold.py pLDDT extraction
+**Where it surfaced:** First pLDDT extraction reported values of 0.67–0.80 instead of the expected 67–80 range.
+
+**Problem:** Standard PDB convention stores pLDDT in the B-factor column in the 0–100 scale. ESMFold REST API returns B-factors in the 0–1 scale (a known quirk of this endpoint). Direct use of the raw value would produce non-standard pLDDT values that misrepresent confidence.
+
+**Fix:** Multiply by 100: `bfactor = float(line[60:66].strip()) * 100.0`. Also switched to extracting only Cα atoms (one per residue, stable across all structures) rather than first-atom-per-residue fallback.
+
+**Final values:** HBB 79.70 (ref), KCNK9 67.94 (ref), TRPV3 77.37 (ref, N-term domain only). All above the 70 pLDDT "confident fold" threshold except KCNK9 (67.94, borderline — expected for a multi-pass TM protein predicted from sequence).
+
+---
+
+## P22 — evaluate_scaling.py v1: Stochastic PMD Scaling Produced 0–12 Sites
+
+**Phase:** 3 ext — Figure 3
+**Where it surfaced:** First version of `evaluate_scaling.py` swept `DAMAGE_SCALE ∈ {1, 2, 5, 10, 20}` — applying stochastic damage at amplified rates and evaluating recovery at damaged positions.
+
+**Problem:** The PMD profile only defines non-trivial probabilities for positions 1–25 from each read end. Within a 2000 bp window, that's at most 50 terminal nucleotides. Of those, ~25% are C or G (relevant for deamination), giving ~12 candidate positions per window. At authentic 1× rates, peak C→T is ~0.35% → expected damaged positions across 69 windows ≈ 0.3 — zero in practice. At 10× → ~3.5%, still only ~12 × 0.035 × 69 ≈ 29 sites total. Not enough for a powered comparison.
+
+**Fix:** Switched evaluation strategy entirely. Instead of applying stochastic damage and evaluating at damaged positions, mask ALL terminal C/G positions deterministically and sweep the terminal zone width `T_END ∈ {3, 5, 10, 15, 20, 25}`. This gives 99–790 sites per T_END and well-powered statistics at every value.
+
+**Why this is more principled:** DAM was trained to mask terminal C/G positions (not to damage-simulate and reconstruct). Evaluating the model on exactly its training objective (masked terminal C/G reconstruction) is cleaner than the stochastic simulation, which would add PMD-simulation variance on top of the masking experiment.
