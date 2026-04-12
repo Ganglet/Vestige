@@ -1,0 +1,56 @@
+{
+  "TRPV3": {
+    "mlm": {
+      "plddt_ref": 77.37,
+      "plddt_method": 77.44,
+      "tm_score": 0.9808,
+      "rmsd_ca": 1.092,
+      "aligned_aa": 400,
+      "L_ref": 400
+    },
+    "dam": {
+      "plddt_ref": 77.37,
+      "plddt_method": 77.44,
+      "tm_score": 0.9808,
+      "rmsd_ca": 1.092,
+      "aligned_aa": 400,
+      "L_ref": 400
+    }
+  },
+  "KCNK9": {
+    "mlm": {
+      "plddt_ref": 67.94,
+      "plddt_method": 67.02,
+      "tm_score": 0.952,
+      "rmsd_ca": 1.732,
+      "aligned_aa": 347,
+      "L_ref": 347
+    },
+    "dam": {
+      "plddt_ref": 67.94,
+      "plddt_method": 67.02,
+      "tm_score": 0.952,
+      "rmsd_ca": 1.732,
+      "aligned_aa": 347,
+      "L_ref": 347
+    }
+  },
+  "HBB": {
+    "mlm": {
+      "plddt_ref": 79.7,
+      "plddt_method": 80.78,
+      "tm_score": 0.9728,
+      "rmsd_ca": 0.815,
+      "aligned_aa": 162,
+      "L_ref": 162
+    },
+    "dam": {
+      "plddt_ref": 79.7,
+      "plddt_method": 81.34,
+      "tm_score": 0.9714,
+      "rmsd_ca": 0.84,
+      "aligned_aa": 162,
+      "L_ref": 162
+    }
+  }
+}

@@ -1,0 +1,3 @@
+HBB: 7 damaged positions at 30× PMD scale
+  mlm: 2/7 correct (28.6%)
+  dam: 1/7 correct (14.3%)

@@ -1,0 +1,23 @@
+
+Table 3 — ESMFold structural validation (Phase 4)
+============================================================================
+Gene      Method  pLDDT(ref)  pLDDT(recon)   TM-score   Cα-RMSD      n
+----------------------------------------------------------------------------
+TRPV3     mlm         77.37         77.44     0.9808     1.092    400
+TRPV3     dam         77.37         77.44     0.9808     1.092    400
+
+KCNK9     mlm         67.94         67.02     0.9520     1.732    347
+KCNK9     dam         67.94         67.02     0.9520     1.732    347
+
+HBB       mlm         79.70         80.78     0.9728     0.815    162
+HBB       dam         79.70         81.34     0.9714     0.840    162
+
+============================================================================
+
+Notes:
+  TM-score: Zhang & Skolnick (2004) formula, normalised by reference length
+  TM-score > 0.5 = same fold topology; > 0.9 = near-identical structure
+  Cα-RMSD after Kabsch superposition
+  TRPV3 folded on N-terminal domain (aa 1–400); full-length 791 aa exceeds API limit
+  Damage applied at 10–30× authentic PMD rates (amplified for testability)
+  pLDDT in 0–100 scale (ESMFold Cα B-factor × 100)
