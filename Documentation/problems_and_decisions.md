@@ -396,3 +396,16 @@ This reliably returns NM_*/XM_* mRNA records, from which the CDS feature is extr
 **Fix:** Switched evaluation strategy entirely. Instead of applying stochastic damage and evaluating at damaged positions, mask ALL terminal C/G positions deterministically and sweep the terminal zone width `T_END ∈ {3, 5, 10, 15, 20, 25}`. This gives 99–790 sites per T_END and well-powered statistics at every value.
 
 **Why this is more principled:** DAM was trained to mask terminal C/G positions (not to damage-simulate and reconstruct). Evaluating the model on exactly its training objective (masked terminal C/G reconstruction) is cleaner than the stochastic simulation, which would add PMD-simulation variance on top of the masking experiment.
+
+---
+
+## P23 — MC1R Not Annotated in Asian Elephant Genome
+
+**Phase:** 3 ext — validation expansion
+**Where it surfaced:** `expand_validation.py` — NCBI Gene search for MC1R in Elephas maximus returned no results.
+
+**Problem:** MC1R (melanocortin-1 receptor) is not annotated under that gene symbol in GCF_024166365.1 (EanMak 1.0). The Asian Elephant genome annotation uses gene symbols inconsistently for some coat-colour loci, similar to HBB (P4).
+
+**Decision:** Skipped MC1R. The remaining four genes (TRPA1, UCP1, ADRB3, FASN) contributed 557 windows — sufficient for the validation expansion goal. A fallback description search could recover the locus but was not necessary given the total window count.
+
+**Impact:** None on results. 557 extra windows raised total to 626, giving p < 0.001 at all six T_END values.
