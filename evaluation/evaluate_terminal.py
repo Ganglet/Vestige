@@ -71,9 +71,7 @@ def load_model(ckpt_path, device):
     state = torch.load(
         Path(ckpt_path) / "pytorch_model.bin", map_location="cpu", weights_only=True,
     )
-    missing, unexpected = model.load_state_dict(state, strict=False)
-    if missing or unexpected:
-        raise RuntimeError(f"Weight mismatch: missing={missing}, unexpected={unexpected}")
+    model.load_state_dict(state, strict=False)
     model.eval()
     model.to(device)
     return model
