@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/🤗_DNABERT--2-117M-FFD21E" />
   <img src="https://img.shields.io/badge/ESMFold-REST_API-6366f1" />
   <img src="https://img.shields.io/badge/mapDamage2-PMD_Profiling-16a34a" />
-  <img src="https://img.shields.io/badge/W%26B-Experiment_Tracking-FFBE00?logo=weightsandbiases&logoColor=black" />
+  <a href="https://wandb.ai/angshumanchakravertty-svkm-s-narsee-monjee-institute-of-/phoenix-lm/runs/cz45npj4"><img src="https://img.shields.io/badge/W%26B-Experiment_Tracking-FFBE00?logo=weightsandbiases&logoColor=black" /></a>
   <img src="https://img.shields.io/badge/License-MIT-22c55e" />
   <img src="https://img.shields.io/badge/Status-Manuscript_Prep-f97316" />
 </p>
@@ -161,6 +161,21 @@ Woolly Mammoth aDNA (SRA: ERP008929)          Asian Elephant genome (GCF_0241663
 
 ---
 
+## Dataset
+
+Sliding window extraction over gene loci in the Asian Elephant reference: 2000 bp windows, stride 200 bp, tokenized to max 512 DNABERT-2 tokens.
+
+| Split | Genes | Windows |
+|-------|-------|---------|
+| Train | TRPV3, KCNK9, HBB | 275 |
+| Validation | TRPV3, KCNK9, HBB | 69 |
+| Held-out eval | TRPA1, UCP1, ADRB3, FASN | 557 |
+| **Total (eval)** | **7 genes** | **626** |
+
+The 80/20 train/val split is random with seed 42. The held-out genes were fetched post-training via NCBI Entrez and never seen during fine-tuning — they are the primary generalization test. PMD damage is simulated at empirical C→T (5′) and G→A (3′) rates from the mapDamage2 profiles before evaluation; training windows use the undamaged reference.
+
+---
+
 ## Repository Structure
 
 ```
@@ -246,7 +261,12 @@ NCBI_EMAIL=you@email.com python3 protein/fetch_cds.py
 python3 protein/damage_reconstruct_cds.py
 python3 protein/run_esmfold.py
 python3 protein/tmalign_compare.py                 # Table 3
+
+# Log all evaluation results to W&B (reads from saved JSONs, no inference needed)
+python3 results/log_eval_to_wandb.py
 ```
+
+All evaluation metrics, T_END sweep line charts, per-position decomposition, and paper figures are tracked in [W&B](https://wandb.ai/angshumanchakravertty-svkm-s-narsee-monjee-institute-of-/phoenix-lm) for reproducibility.
 
 ---
 
