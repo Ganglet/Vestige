@@ -56,11 +56,17 @@ DAM achieves **13% lower validation loss** on C/G-only masked positions (3.2736 
 
 ---
 
-## Figure 3 — Terminal Zone Sensitivity Analysis
+## Figure 3 — Four-Baseline Terminal Zone Sensitivity
 
 ![Figure 3 — Terminal Zone Sensitivity](results/figures/fig3_damage_scaling.png)
 
-The DAM advantage is **localized to the terminal damage zone and decays inward**, matching the shape of the PMD profile. Δ(DAM−MLM) ranges from +10.4 pp (T_END=3) to +4.2 pp (T_END=15), then stabilises. At every terminal zone width, the 95% bootstrap CI is entirely positive.
+The DAM advantage is **localized to the terminal damage zone and decays inward**, matching the shape of the PMD profile. Δ(DAM−MLM) ranges from +10.4 pp (T_END=3) to +4.2 pp (T_END=15), then stabilises. At every terminal zone width, the 95% bootstrap CI is entirely positive. Zero-shot DNABERT-2 is consistently the worst performer — fine-tuning is necessary; but only damage-aware fine-tuning actually works at the peak-damage zone.
+
+### Figure 3b — Innermost Terminal Zone Spotlight (T_END = 3)
+
+![Figure 3b — Headline](results/figures/fig3b_headline.png)
+
+At the innermost 3 nt — where PMD probability peaks — MLM fine-tuning (20.5%) falls **below random chance** (27.7%). DAM (30.8%) is the only method above random. This is the central claim of the paper in one plot.
 
 ---
 
