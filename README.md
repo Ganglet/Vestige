@@ -70,7 +70,7 @@ At the innermost 3 nt — where PMD probability peaks — MLM fine-tuning (20.5%
 
 ---
 
-## Three-Part Validation
+## Four-Part Validation
 
 ### 1 — Nucleotide Recovery (Phase 3)
 
@@ -86,7 +86,13 @@ Evaluation dataset: 626 windows across 7 genes — TRPV3, KCNK9, HBB (training g
 
 Fine-grained per-nucleotide analysis (d = 1..25 from each end, 5′-C and 3′-G strands separated). At d = 1 from the 5′ end — the single nucleotide with highest PMD probability — DAM reconstructs 5/16 cytosines correctly vs 1/16 for MLM (5× improvement). The gradient decays with distance, matching the mapDamage2 C→T profile.
 
-### 3 — Protein Structural Validation (Phase 4)
+### 3 — Damage Intensity Sweep (Phase 3 ext)
+
+![Intensity Sweep](results/figures/fig_intensity.png)
+
+The mapDamage2 decay shape was normalized to synthetic peak rates (5–40%) simulating specimens of increasing age. Δ(DAM−MLM) = +8.7 to +12.9 pp at all five levels — no crossover, no intensity at which MLM is better. Significance is reached at ≥20% peak rate (p ≤ 0.004) where sufficient sites accumulate. The effect size is consistent across intensities, showing DAM's advantage is structural — tied to the position-dependent masking objective — not contingent on the damage magnitude of the particular specimen used for training.
+
+### 4 — Protein Structural Validation (Phase 4)
 
 ESMFold REST API used to fold all reconstructed protein sequences for TRPV3, KCNK9, and HBB. TM-score and Cα-RMSD computed via pure-Python Kabsch superposition (Zhang & Skolnick 2004).
 
@@ -255,6 +261,9 @@ python3 evaluation/evaluate_scaling.py             # Figure 3
 
 # Phase 3 ext — per-position decomposition
 python3 evaluation/evaluate_per_position.py
+
+# Phase 3 ext — damage intensity sweep (synthetic peak rates 5–40%)
+python3 evaluation/evaluate_intensity.py
 
 # Phase 4 — protein structural validation
 NCBI_EMAIL=you@email.com python3 protein/fetch_cds.py
