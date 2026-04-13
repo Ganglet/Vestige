@@ -7,6 +7,7 @@ Creates a single W&B run with:
   - Phase 3: background + terminal reconstruction (Tables 1 & 2)
   - Phase 3 ext: T_END sensitivity sweep (line chart — 4 baselines, Figure 3)
   - Phase 3 ext: per-position d=1..25 decomposition (line chart)
+  - Phase 3 ext: damage intensity sweep (line chart — 5 peak rates)
   - Phase 4: ESMFold pLDDT + TM-score (Table 3)
   - Figures: uploads all PNGs from results/figures/
 
@@ -19,12 +20,13 @@ import wandb
 from pathlib import Path
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
-TABLE1_JSON       = Path("evaluation/results_table1.json")
-TERMINAL_JSON     = Path("evaluation/results_terminal.json")
-SCALING_JSON      = Path("evaluation/scaling_results.json")
-PER_POS_JSON      = Path("evaluation/per_position_results.json")
-TABLE3_JSON       = Path("protein/table3.json")
-FIGURES_DIR       = Path("results/figures")
+TABLE1_JSON     = Path("evaluation/results_table1.json")
+TERMINAL_JSON   = Path("evaluation/results_terminal.json")
+SCALING_JSON    = Path("evaluation/scaling_results.json")
+PER_POS_JSON    = Path("evaluation/per_position_results.json")
+INTENSITY_JSON  = Path("evaluation/intensity_results.json")
+TABLE3_JSON     = Path("protein/table3.json")
+FIGURES_DIR     = Path("results/figures")
 # ───────────────────────────────────────────────────────────────────────────────
 
 
@@ -209,6 +211,37 @@ def main():
         wandb.log({"per_position/results_table": pp_table})
         print("✓ Per-position results logged")
 
+    # ── Phase 3 ext — damage intensity sweep ──────────────────────────────────
+    # Line chart: x = peak_rate, y = recovery for each method
+    if INTENSITY_JSON.exists():
+        wandb.define_metric("intensity/*", step_metric="intensity/peak_rate_pct")
+        intensity = json.loads(INTENSITY_JSON.read_text())
+
+        int_table = wandb.Table(columns=[
+            "peak_rate_pct", "n_sites", "n_windows",
+            "random", "zeroshot", "mlm", "dam", "delta_pp", "p_two"
+        ])
+        for rate_str, r in sorted(intensity.items(), key=lambda x: float(x[0])):
+            pct = int(float(rate_str) * 100)
+            int_table.add_data(
+                pct, r["n_sites"], r["n_windows"],
+                safe(r.get("rnd_mean")), safe(r.get("zs_mean")),
+                safe(r["mlm_mean"]), safe(r["dam_mean"]),
+                safe(r["delta"]), safe(r["p_value_two"]),
+            )
+            wandb.log({
+                "intensity/peak_rate_pct": pct,
+                "intensity/random":        safe(r.get("rnd_mean")),
+                "intensity/zeroshot":      safe(r.get("zs_mean")),
+                "intensity/mlm":           safe(r["mlm_mean"]),
+                "intensity/dam":           safe(r["dam_mean"]),
+                "intensity/delta_pp":      safe(r["delta"]),
+                "intensity/p_two":         safe(r["p_value_two"]),
+                "intensity/n_sites":       r["n_sites"],
+            })
+        wandb.log({"intensity/sweep_table": int_table})
+        print("✓ Intensity sweep logged")
+
     # ── Phase 4 — ESMFold structural validation (Table 3) ─────────────────────
     t3 = json.loads(TABLE3_JSON.read_text())
 
@@ -239,6 +272,7 @@ def main():
         "fig3_damage_scaling.png":  "Figure 3 — T_END Sensitivity (4 baselines, 626 windows)",
         "fig3b_headline.png":       "Figure 3b — T_END=3 Spotlight (MLM < Random)",
         "fig_per_position.png":     "Figure S1 — Per-Position Decomposition (d=1..25)",
+        "fig_intensity.png":        "Figure S2 — Damage Intensity Sweep (5–40% peak rates)",
     }
     images = []
     for fname, caption in fig_labels.items():
