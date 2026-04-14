@@ -1,0 +1,35 @@
+{
+  "val_auc": 0.9347109913147651,
+  "val_accuracy": 0.8659217877094972,
+  "val_precision": 0.7843137254901961,
+  "val_recall": 0.7547169811320755,
+  "confusion": {
+    "tp": 40,
+    "fp": 11,
+    "tn": 115,
+    "fn": 13
+  },
+  "reconstructed": {
+    "n_windows": 626,
+    "mean_score": 0.020800206345701934,
+    "max_score": 0.9789940118789673,
+    "n_flagged": 11,
+    "flag_rate": 0.01757188498402556,
+    "flagged_by_gene": {
+      "TRPA1": 6,
+      "FASN": 3,
+      "ADRB3": 1,
+      "HBB": 1
+    },
+    "flag_explanation": "All 11 flagged windows are pre-existing in the Asian elephant reference genome before any reconstruction. TRPA1 flags are attributed to ankyrin repeat domains conserved between bacteria and eukaryotes. FASN flags correspond to high-GC windows (GC=0.637) resembling bacterial CDS composition. Neither MLM nor DAM reconstruction introduced novel virulence-gene signatures."
+  },
+  "training": {
+    "epochs": 40,
+    "window_bp": 300,
+    "n_train": 713,
+    "n_val": 179,
+    "n_positive_windows": 266,
+    "n_negative_windows": 626,
+    "positive_source": "20 pathogen virulence sequences (E.coli stx1/stx2, S.aureus mecA/spa, Listeria hlyA, Salmonella sipA/invA, V.cholerae ctxA/ctxB, P.aeruginosa exoS/exoU)"
+  }
+}
