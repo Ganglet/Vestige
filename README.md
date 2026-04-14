@@ -92,7 +92,11 @@ Fine-grained per-nucleotide analysis (d = 1..25 from each end, 5′-C and 3′-G
 
 The mapDamage2 decay shape was normalized to synthetic peak rates (5–40%) simulating specimens of increasing age. Δ(DAM−MLM) = +8.7 to +12.9 pp at all five levels — no crossover, no intensity at which MLM is better. Significance is reached at ≥20% peak rate (p ≤ 0.004) where sufficient sites accumulate. The effect size is consistent across intensities, showing DAM's advantage is structural — tied to the position-dependent masking objective — not contingent on the damage magnitude of the particular specimen used for training.
 
-### 4 — Protein Structural Validation (Phase 4)
+### 4 — Biosecurity Classifier (Phase 5)
+
+A 1D CNN (AUC = 0.934) trained to distinguish pathogen virulence genes from host sequences flags 615/626 (98.2%) of reference windows as safe (mean score 0.021). The 11 flagged windows are pre-existing in the Asian elephant reference genome — concentrated in TRPA1 (ankyrin repeat domains, conserved across kingdoms) and FASN (high GC content). Neither reconstruction model introduces novel virulence-gene signatures.
+
+### 5 — Protein Structural Validation (Phase 4)
 
 ESMFold REST API used to fold all reconstructed protein sequences for TRPV3, KCNK9, and HBB. TM-score and Cα-RMSD computed via pure-Python Kabsch superposition (Zhang & Skolnick 2004).
 
