@@ -69,7 +69,7 @@ Neither MLM nor DAM changes enough nucleotides at damaged positions to push a wi
 
 ## Paper Usage
 
-*"To address dual-use concerns inherent in ancient DNA reconstruction, we trained a binary 1D CNN classifier (AUC = 0.934) to distinguish pathogen virulence genes from host sequences. Applied to all 626 Asian elephant reference windows used in evaluation, 615 (98.2%) scored below the classification threshold (mean score 0.021). The 11 windows exceeding the threshold were present in the pre-reconstruction reference genome, concentrated in TRPA1 (ankyrin repeat domains conserved across kingdoms) and FASN (high GC content), and were not introduced by either reconstruction model. Phoenix-LM does not generate novel virulence-gene signatures."*
+*"To address dual-use concerns inherent in ancient DNA reconstruction, we trained a binary 1D CNN classifier (AUC = 0.934) to distinguish pathogen virulence genes from host sequences. Applied to all 626 Asian elephant reference windows used in evaluation, 615 (98.2%) scored below the classification threshold (mean score 0.021). The 11 windows exceeding the threshold were present in the pre-reconstruction reference genome, concentrated in TRPA1 (ankyrin repeat domains conserved across kingdoms) and FASN (high GC content), and were not introduced by either reconstruction model. VESTIGE does not generate novel virulence-gene signatures."*
 
 ---
 

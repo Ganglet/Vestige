@@ -1,5 +1,5 @@
 """
-DamageAwareDataCollator — Phoenix-LM Phase 2 core contribution.
+DamageAwareDataCollator — VESTIGE Phase 2 core contribution.
 
 Subclasses HuggingFace DataCollatorForLanguageModeling and overrides
 torch_mask_tokens() to assign per-position, per-base masking probabilities

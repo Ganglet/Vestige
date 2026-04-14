@@ -1,5 +1,5 @@
 """
-Log all evaluation results to W&B — Phoenix-LM.
+Log all evaluation results to W&B — VESTIGE.
 
 Reads from existing JSON files (no model inference needed).
 Creates a single W&B run with:
@@ -47,10 +47,10 @@ def pct(v):
 
 def main():
     wandb.init(
-        project="phoenix-lm",
+        project="vestige",
         name="evaluation-results",
         notes=(
-            "Full evaluation results for Phoenix-LM: "
+            "Full evaluation results for VESTIGE: "
             "DAM vs MLM fine-tuning on ancient DNA reconstruction. "
             "Includes T_END sensitivity sweep (626 windows, 7 genes, 4 baselines), "
             "per-position decomposition, and ESMFold structural validation."

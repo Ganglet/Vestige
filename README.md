@@ -4,13 +4,14 @@
   <img src="https://img.shields.io/badge/🤗_DNABERT--2-117M-FFD21E" />
   <img src="https://img.shields.io/badge/ESMFold-REST_API-6366f1" />
   <img src="https://img.shields.io/badge/mapDamage2-PMD_Profiling-16a34a" />
-  <a href="https://wandb.ai/angshumanchakravertty-svkm-s-narsee-monjee-institute-of-/phoenix-lm/runs/cz45npj4"><img src="https://img.shields.io/badge/W%26B-Experiment_Tracking-FFBE00?logo=weightsandbiases&logoColor=black" /></a>
+  <a href="https://wandb.ai/angshumanchakravertty-svkm-s-narsee-monjee-institute-of-/vestige/runs/cz45npj4"><img src="https://img.shields.io/badge/W%26B-Experiment_Tracking-FFBE00?logo=weightsandbiases&logoColor=black" /></a>
   <img src="https://img.shields.io/badge/License-MIT-22c55e" />
   <img src="https://img.shields.io/badge/Status-Manuscript_Prep-f97316" />
 </p>
 
-<h1 align="center">Phoenix-LM</h1>
-<p align="center"><b>Damage-Aware Ancient DNA Infilling with Protein Stability Validation</b></p>
+<h1 align="center">VESTIGE</h1>
+<p align="center"><b>Variant-aware Estimation of Sequences Through In silico Genomic Emulation</b></p>
+<p align="center"><i>Damage-Aware Ancient DNA Infilling with Protein Stability Validation</i></p>
 <p align="center">Angshuman Chakravertty · B.Tech CSE (Data Science), NMIMS Hyderabad</p>
 
 ---
@@ -34,7 +35,7 @@ DAM is the only method that consistently exceeds random. All six terminal zone w
 
 Ancient DNA carries a forensic signature: cytosines deaminate to thymine preferentially at 5′ fragment ends; guanines oxidise at 3′ ends. This post-mortem damage (PMD) is non-random, position-dependent, and empirically characterised by mapDamage2. Every DNA language model trained before this work ignores this structure entirely — they apply uniform random masking during training, building no specialised reconstruction ability at the precise positions where ancient sequence information is most degraded.
 
-**Phoenix-LM makes one principled change:** replace uniform masking with **Damage-Aware Masking (DAM)** — a custom PyTorch `DataCollator` that samples per-position masking probabilities directly from real mapDamage2 PMD profiles. The masking gradient mirrors the biological damage gradient. Fine-tuning on this objective produces a model that has seen disproportionately more training signal at the positions that matter most in ancient sequence reconstruction.
+**VESTIGE makes one principled change:** replace uniform masking with **Damage-Aware Masking (DAM)** — a custom PyTorch `DataCollator` that samples per-position masking probabilities directly from real mapDamage2 PMD profiles. The masking gradient mirrors the biological damage gradient. Fine-tuning on this objective produces a model that has seen disproportionately more training signal at the positions that matter most in ancient sequence reconstruction.
 
 The reconstructed coding sequences are then validated at the protein level via ESMFold, establishing that neither model introduces fold-disrupting substitutions — reconstruction is biologically viable.
 
@@ -189,7 +190,7 @@ The 80/20 train/val split is random with seed 42. The held-out genes were fetche
 ## Repository Structure
 
 ```
-Phoenix-LM/
+VESTIGE/
 ├── damage/
 │   ├── parse_profiles.py          # misincorporation.txt → damage_profile.npy
 │   ├── visualize_damage.py        # Figure 1
@@ -279,16 +280,16 @@ python3 protein/tmalign_compare.py                 # Table 3
 python3 results/log_eval_to_wandb.py
 ```
 
-All evaluation metrics, T_END sweep line charts, per-position decomposition, and paper figures are tracked in [W&B](https://wandb.ai/angshumanchakravertty-svkm-s-narsee-monjee-institute-of-/phoenix-lm) for reproducibility.
+All evaluation metrics, T_END sweep line charts, per-position decomposition, and paper figures are tracked in [W&B](https://wandb.ai/angshumanchakravertty-svkm-s-narsee-monjee-institute-of-/vestige) for reproducibility.
 
 ---
 
 ## Citation
 
 ```bibtex
-@misc{chakravertty2026phoenix,
+@misc{chakravertty2026vestige,
   author = {Chakravertty, Angshuman},
-  title  = {Phoenix-LM: Damage-Aware Ancient DNA Infilling with Protein Stability Validation},
+  title  = {VESTIGE: Variant-aware Estimation of Sequences Through In silico Genomic Emulation},
   year   = {2026},
   note   = {Manuscript in preparation}
 }

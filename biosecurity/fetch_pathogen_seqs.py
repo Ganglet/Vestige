@@ -26,7 +26,7 @@ if not EMAIL:
     sys.exit("Set NCBI_EMAIL environment variable before running.")
 
 Entrez.email = EMAIL
-Entrez.tool  = "PhoenixLM-biosecurity"
+Entrez.tool  = "VESTIGE-biosecurity"
 
 OUT_FASTA = Path("biosecurity/pathogen_seqs.fasta")
 MIN_LEN   = 200

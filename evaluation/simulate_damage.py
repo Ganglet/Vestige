@@ -1,5 +1,5 @@
 """
-In silico post-mortem damage simulation — Phoenix-LM Phase 3.
+In silico post-mortem damage simulation — VESTIGE Phase 3.
 
 Applies C→T (5′) and G→A (3′) substitutions at the nucleotide level using
 empirical PMD frequencies from damage_profile.npy, then uses the tokenizer's

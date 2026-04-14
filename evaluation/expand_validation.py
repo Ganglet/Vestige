@@ -1,5 +1,5 @@
 """
-Validation set expansion — Phoenix-LM Phase 3 extension.
+Validation set expansion — VESTIGE Phase 3 extension.
 
 Fetches genomic coordinates for 5 additional genes (not in training data)
 from the Asian Elephant reference, extracts 2000 bp windows, tokenizes,

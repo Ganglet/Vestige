@@ -1,5 +1,5 @@
 """
-Per-position terminal reconstruction analysis — Phoenix-LM Phase 3 (extension).
+Per-position terminal reconstruction analysis — VESTIGE Phase 3 (extension).
 
 Evaluates MLM vs DAM recovery rate at each individual distance d from the read
 end (d = 1 .. 25), rather than binning into a T_END window. This shows the

@@ -1,5 +1,5 @@
 """
-Biosecurity classifier — Phoenix-LM Phase 5.
+Biosecurity classifier — VESTIGE Phase 5.
 
 Binary 1D CNN: pathogen virulence gene (positive) vs mammoth/elephant host
 sequence (negative). The classifier is a proof-of-concept safety gate —

@@ -1,5 +1,5 @@
 """
-Terminal-zone sensitivity analysis — Phoenix-LM Phase 3 (Figure 3).
+Terminal-zone sensitivity analysis — VESTIGE Phase 3 (Figure 3).
 
 Runs the terminal-position reconstruction evaluation at T_END ∈ {3, 5, 10, 15, 20, 25} nt.
 T_END defines how many nucleotides from each window end are treated as "terminal" —

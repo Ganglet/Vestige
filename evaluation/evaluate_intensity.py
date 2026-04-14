@@ -1,5 +1,5 @@
 """
-Damage intensity sweep — Phoenix-LM.
+Damage intensity sweep — VESTIGE.
 
 The empirical woolly mammoth PMD rates are ~0.35% peak C→T — too low for
 stochastic testing (barely any positions get hit per window). This script

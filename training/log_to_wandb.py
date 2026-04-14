@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 import wandb
 
-WANDB_PROJECT = "phoenix-lm"
+WANDB_PROJECT = "vestige"
 
 RUNS = [
     # MLM baseline already logged (run ID: vfdklmzb) — uncomment to re-log if needed

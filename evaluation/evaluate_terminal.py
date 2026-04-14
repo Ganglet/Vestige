@@ -1,5 +1,5 @@
 """
-Terminal-position reconstruction evaluation — Phoenix-LM Phase 3.
+Terminal-position reconstruction evaluation — VESTIGE Phase 3.
 
 The DAM collator concentrates masking at terminal positions: C tokens near the
 5' end and G tokens near the 3' end, matching the mapDamage2 deamination

@@ -1,5 +1,5 @@
 """
-Fine-tuning dataset construction for Phoenix-LM Phase 2.
+Fine-tuning dataset construction for VESTIGE Phase 2.
 
 Extracts CDS sequences for TRPV3, KCNK9, HBB from the Asian Elephant
 reference (elephant_ref.fa), tiles into overlapping windows, tokenizes

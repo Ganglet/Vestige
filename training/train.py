@@ -1,5 +1,5 @@
 """
-Fine-tuning script for Phoenix-LM Phase 2 ablation.
+Fine-tuning script for VESTIGE Phase 2 ablation.
 
 Runs either the MLM baseline or DAM proposed fine-tuning run depending
 on the config file passed. Both runs use identical hyperparameters —

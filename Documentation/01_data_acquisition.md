@@ -8,7 +8,7 @@
 
 ## Objective
 
-Obtain raw ancient DNA reads from a woolly mammoth specimen and a high-quality Asian Elephant reference genome to serve as the alignment target and coding sequence source for Phoenix-LM.
+Obtain raw ancient DNA reads from a woolly mammoth specimen and a high-quality Asian Elephant reference genome to serve as the alignment target and coding sequence source for VESTIGE.
 
 ---
 

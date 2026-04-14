@@ -1,5 +1,5 @@
 """
-Reconstruction evaluation — Phoenix-LM Phase 3.
+Reconstruction evaluation — VESTIGE Phase 3.
 
 For each of the 69 validation windows:
   1. Mask the token position(s) in gt_ids that span the damaged nucleotide(s).

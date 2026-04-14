@@ -1,4 +1,4 @@
-# Problems Faced & Key Decisions — Phoenix-LM
+# Problems Faced & Key Decisions — VESTIGE
 
 This document is a running log of every non-trivial problem encountered and every design decision made during the project. It is updated after each implementation step and serves as source material for the Methods, Limitations, and Discussion sections of the paper.
 

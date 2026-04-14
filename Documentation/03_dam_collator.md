@@ -8,7 +8,7 @@
 
 ## Objective
 
-Implement `DamageAwareDataCollator` as a subclass of HuggingFace `DataCollatorForLanguageModeling`, overriding the masking method to assign per-position, per-base masking probabilities derived from the mapDamage2 profiles produced in Phase 1. This is the primary methodological contribution of Phoenix-LM.
+Implement `DamageAwareDataCollator` as a subclass of HuggingFace `DataCollatorForLanguageModeling`, overriding the masking method to assign per-position, per-base masking probabilities derived from the mapDamage2 profiles produced in Phase 1. This is the primary methodological contribution of VESTIGE.
 
 ---
 
