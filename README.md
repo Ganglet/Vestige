@@ -24,10 +24,10 @@ Standard masked language model fine-tuning on ancient DNA is not just suboptimal
 |--------|-------------|-------------|--------------|
 | Zero-shot DNABERT-2 | 15.5% | 19.2% | 22.8% |
 | Random (chance) | 27.7% | 25.7% | 25.0% |
-| MLM fine-tuning | 20.5% ⚠️ | 24.0% | 26.5% |
-| **DAM (proposed)** | **30.8%** ✓ | **31.2%** ✓ | **32.2%** ✓ |
+| MLM fine-tuning | **20.5% ⚠️** | 24.0% | 26.5% |
+| **DAM (proposed)** | **30.8% ✓** | **31.2% ✓** | **32.2% ✓** |
 
-DAM is the only method that consistently exceeds random. All six terminal zone widths: **p < 0.001** (paired t-test, n = 626 windows across 7 genes).
+DAM is the only method that consistently exceeds random. All six terminal zone widths: **p < 0.001** (paired t-test, two-sided, n = 626 windows across 7 genes).
 
 ---
 
@@ -37,7 +37,7 @@ Ancient DNA carries a forensic signature: cytosines deaminate to thymine prefere
 
 **VESTIGE makes one principled change:** replace uniform masking with **Damage-Aware Masking (DAM)** — a custom PyTorch `DataCollator` that samples per-position masking probabilities directly from real mapDamage2 PMD profiles. The masking gradient mirrors the biological damage gradient. Fine-tuning on this objective produces a model that has seen disproportionately more training signal at the positions that matter most in ancient sequence reconstruction.
 
-The reconstructed coding sequences are then validated at the protein level via ESMFold, establishing that neither model introduces fold-disrupting substitutions — reconstruction is biologically viable.
+Reconstructed coding sequences are validated at the protein level via ESMFold, and a biosecurity classifier confirms reconstruction does not introduce virulence-gene signatures.
 
 ---
 
@@ -45,7 +45,7 @@ The reconstructed coding sequences are then validated at the protein level via E
 
 ![Figure 1 — PMD Damage Profile](results/figures/fig1_damage_profile.png)
 
-C→T deamination peaks at position 1 from the 5′ end (~0.35–0.41% per specimen) and decays exponentially to background by position ~10. G→A at the 3′ end mirrors this pattern. ERR852028 (~44,800 BP) shows consistently higher terminal damage than ERR855944 (~4,300 BP), confirming the age-damage relationship. Both specimens converge to a shared background of 0.001 by position 10. The mean of these two profiles is what DAM's masking probabilities are sampled from.
+C→T deamination peaks at position 1 from the 5′ end (~0.35–0.41% per specimen) and decays exponentially to background by position ~10. G→A at the 3′ end mirrors this pattern. ERR852028 (~44,800 BP) shows consistently higher terminal damage than ERR855944 (~4,300 BP), confirming the age–damage relationship. Both specimens converge to background (0.001) by position 10. The mean of these two profiles drives DAM's masking probabilities.
 
 ---
 
@@ -53,53 +53,49 @@ C→T deamination peaks at position 1 from the 5′ end (~0.35–0.41% per speci
 
 ![Figure 2 — Training Curves](results/figures/fig2_training_curves.png)
 
-DAM achieves **13% lower validation loss** on C/G-only masked positions (3.2736 vs 3.7568) — the model learns the damage grammar more efficiently when the masking distribution matches the damage distribution. Both models converge at epoch 17 (checkpoint-595).
+DAM achieves **13% lower validation loss** on C/G-only masked positions (3.2736 vs 3.7568). The model learns the damage grammar more efficiently when the masking distribution matches the biological damage distribution. Both models converge at epoch 17 (checkpoint-595).
 
 ---
 
-## Figure 3 — Four-Baseline Terminal Zone Sensitivity
+## Figure 3 — Four-Baseline Terminal Zone Sensitivity (626 windows, 7 genes)
 
 ![Figure 3 — Terminal Zone Sensitivity](results/figures/fig3_damage_scaling.png)
 
-The DAM advantage is **localized to the terminal damage zone and decays inward**, matching the shape of the PMD profile. Δ(DAM−MLM) ranges from +10.4 pp (T_END=3) to +4.2 pp (T_END=15), then stabilises. At every terminal zone width, the 95% bootstrap CI is entirely positive. Zero-shot DNABERT-2 is consistently the worst performer — fine-tuning is necessary; but only damage-aware fine-tuning actually works at the peak-damage zone.
+The DAM advantage is **localised to the terminal damage zone and decays inward**, matching the shape of the PMD profile. Δ(DAM−MLM) ranges from +10.4 pp (T_END=3) to +4.2 pp (T_END=15), then stabilises. At every terminal zone width the 95% bootstrap CI is entirely positive. Zero-shot DNABERT-2 is the worst performer — pre-trained weights without damage-aware fine-tuning are unfit for terminal reconstruction.
 
 ### Figure 3b — Innermost Terminal Zone Spotlight (T_END = 3)
 
 ![Figure 3b — Headline](results/figures/fig3b_headline.png)
 
-At the innermost 3 nt — where PMD probability peaks — MLM fine-tuning (20.5%) falls **below random chance** (27.7%). DAM (30.8%) is the only method above random. This is the central claim of the paper in one plot.
+At the innermost 3 nt — where PMD probability peaks — MLM fine-tuning (20.5%) falls **below random chance** (27.7%). DAM (30.8%) is the only method above random. This is the central result in one plot.
 
 ---
 
-## Four-Part Validation
+## Five-Part Validation
 
-### 1 — Nucleotide Recovery (Phase 3)
+### 1 — Background vs Terminal Nucleotide Recovery
 
-Evaluation dataset: 626 windows across 7 genes — TRPV3, KCNK9, HBB (training genes, validation split) + TRPA1, UCP1, ADRB3, FASN (held-out genes, novel evaluation). Four baselines evaluated at T_END ∈ {3, 5, 10, 15, 20, 25}.
+Evaluation set: 626 windows across 7 genes — TRPV3, KCNK9, HBB (training genes, validation split) + TRPA1, UCP1, ADRB3, FASN (held-out, never seen during training). Four baselines at T_END ∈ {3, 5, 10, 15, 20, 25}.
 
-**At background positions (authentic PMD rates, n=43 windows):** MLM 65.7% vs DAM 65.1%, p = 0.892. No difference — the models are equivalent in the background zone, confirming the advantage is terminal-specific, not a generic artefact.
+**Background positions (authentic PMD rates, n=43 windows):** MLM 65.7% vs DAM 65.1%, p = 0.892 — no difference. The advantage is terminal-specific, not a generic artefact.
 
-**At terminal positions:** DAM > MLM at all six T_END values, p < 0.001. The effect generalizes fully to four new genes not present in training.
+**Terminal positions:** DAM > MLM at all six T_END values, p < 0.001. The effect generalises fully to all four held-out genes.
 
-### 2 — Per-Position Decomposition (Phase 3 ext)
+### 2 — Per-Position Decomposition
 
 ![Per-Position Analysis](results/figures/fig_per_position.png)
 
-Fine-grained per-nucleotide analysis (d = 1..25 from each end, 5′-C and 3′-G strands separated). At d = 1 from the 5′ end — the single nucleotide with highest PMD probability — DAM reconstructs 5/16 cytosines correctly vs 1/16 for MLM (5× improvement). The gradient decays with distance, matching the mapDamage2 C→T profile.
+Per-nucleotide analysis at d = 1..25 from each end, 5′-C and 3′-G strands separated. At d = 1 from the 5′ end — the position with the highest PMD probability — DAM reconstructs 5/16 cytosines correctly vs 1/16 for MLM (5× improvement). The recovery gradient decays with distance from the terminus, matching the mapDamage2 C→T profile shape exactly.
 
-### 3 — Damage Intensity Sweep (Phase 3 ext)
+### 3 — Damage Intensity Sweep
 
 ![Intensity Sweep](results/figures/fig_intensity.png)
 
-The mapDamage2 decay shape was normalized to synthetic peak rates (5–40%) simulating specimens of increasing age. Δ(DAM−MLM) = +8.7 to +12.9 pp at all five levels — no crossover, no intensity at which MLM is better. Significance is reached at ≥20% peak rate (p ≤ 0.004) where sufficient sites accumulate. The effect size is consistent across intensities, showing DAM's advantage is structural — tied to the position-dependent masking objective — not contingent on the damage magnitude of the particular specimen used for training.
+The mapDamage2 decay shape was normalised to synthetic peak rates (5–40%) simulating specimens of increasing age and degradation. Δ(DAM−MLM) = +8.7 to +12.9 pp at **all five levels** — no crossover, no intensity at which MLM is competitive. Significance is reached at ≥20% peak rate (p ≤ 0.004) where sufficient sites accumulate for a powered comparison. The consistent effect size demonstrates that DAM's advantage is structural — tied to the position-dependent masking objective — and not contingent on the specific damage magnitude of the training specimens.
 
-### 4 — Biosecurity Classifier (Phase 5)
+### 4 — Protein Structural Validation
 
-A 1D CNN (AUC = 0.934) trained to distinguish pathogen virulence genes from host sequences flags 615/626 (98.2%) of reference windows as safe (mean score 0.021). The 11 flagged windows are pre-existing in the Asian elephant reference genome — concentrated in TRPA1 (ankyrin repeat domains, conserved across kingdoms) and FASN (high GC content). Neither reconstruction model introduces novel virulence-gene signatures.
-
-### 5 — Protein Structural Validation (Phase 4)
-
-ESMFold REST API used to fold all reconstructed protein sequences for TRPV3, KCNK9, and HBB. TM-score and Cα-RMSD computed via pure-Python Kabsch superposition (Zhang & Skolnick 2004).
+ESMFold REST API used to fold reconstructed protein sequences for TRPV3, KCNK9, and HBB. TM-score and Cα-RMSD computed via pure-Python Kabsch superposition (Zhang & Skolnick 2004) — no binary dependency.
 
 | Gene | Method | pLDDT (ref) | pLDDT (recon) | TM-score | Cα-RMSD |
 |------|--------|-------------|---------------|----------|---------|
@@ -110,9 +106,13 @@ ESMFold REST API used to fold all reconstructed protein sequences for TRPV3, KCN
 | HBB | MLM | 79.70 | 80.78 | 0.9728 | 0.815 Å |
 | HBB | DAM | 79.70 | 81.34 | 0.9714 | 0.840 Å |
 
-† TRPV3 full-length (791 aa) truncated to N-terminal ankyrin repeat domain (aa 1–400; ESMFold API limit).
+† TRPV3 truncated to N-terminal ankyrin repeat domain (aa 1–400; ESMFold API limit). All substitutions are conservative (R↔K, E↔D, S↔T). All TM-scores > 0.95 — neither model introduces fold-disrupting mutations.
 
-All TM-scores > 0.95. All substitutions are conservative (R↔K, E↔D, S↔T type). Neither model introduces fold-disrupting mutations — reconstruction is biologically viable regardless of which model is used.
+### 5 — Biosecurity Classifier
+
+A 1D CNN (AUC = 0.934) trained on 10 virulence gene classes (*E. coli* stx1/stx2, *S. aureus* mecA/spa, *Listeria* hlyA, *Salmonella* sipA/invA, *V. cholerae* ctxA/ctxB, *P. aeruginosa* exoS/exoU) flags 615/626 reference windows (98.2%) as safe (mean score 0.021). The 11 flagged windows are pre-existing in the Asian elephant reference genome — concentrated in TRPA1 (ankyrin repeat domains conserved across kingdoms) and FASN (high GC content). Neither reconstruction model introduces novel virulence-gene signatures.
+
+![Biosecurity Classifier](results/figures/fig_biosecurity.png)
 
 ---
 
@@ -121,17 +121,17 @@ All TM-scores > 0.95. All substitutions are conservative (R↔K, E↔D, S↔T ty
 ```
 Woolly Mammoth aDNA (SRA: ERP008929)          Asian Elephant genome (GCF_024166365.1)
    ERR855944 · ERR852028                            elephant_ref.fa
+   (4,300 BP · 44,800 BP)                           GFF3 annotation
           │                                               │
-     BWA-aln (aDNA params)                         gene_coords.csv
-          │                                    (TRPV3, KCNK9, HBB, TRPA1, UCP1, ADRB3, FASN)
-     mammoth.bam                                          │
-          │                                         build_dataset.py
+     BWA-aln (aDNA params)                    gene_coords.csv  ──→  build_dataset.py
+     -l 16500 -n 0.01                         7 genes, 2000 bp sliding windows
+          │                                         344 windows (275 train / 69 val)
+     mammoth.bam                               + 557 held-out (4 new genes, post-training)
+          │                                               │
      mapDamage2                                           │
-          │                                        344 windows (train/val split)
-   damage_profile.npy                                     │
           │                                               │
-          └──────────────────────────────────────────┐   │
-                                                     ▼   ▼
+   damage_profile.npy  ─────────────────────────────┐    │
+   (C→T, G→A per position)                          ▼    ▼
                                         ┌─────────────────────────────┐
                                         │    DNABERT-2 Fine-tuning    │
                                         │  ┌─────────┐  ┌─────────┐  │
@@ -141,49 +141,66 @@ Woolly Mammoth aDNA (SRA: ERP008929)          Asian Elephant genome (GCF_0241663
                                         │  └─────────┘  └─────────┘  │
                                         └─────────────────────────────┘
                                                      │
-                        ┌────────────────────────────┼────────────────────────┐
-                        ▼                            ▼                        ▼
-               Nucleotide recovery           T_END sensitivity          ESMFold (REST API)
-               at authentic PMD              analysis + baselines        pLDDT · TM-score
-               (Table 1 + 2)                 (Figure 3, 626 windows)     (Table 3)
+          ┌──────────────────────┬──────────────────┼──────────────────┬──────────────────┐
+          ▼                      ▼                   ▼                  ▼                  ▼
+  Nucleotide recovery      T_END sweep          Per-position      Intensity sweep    ESMFold (REST)
+  background + terminal    6 widths × 4 bases   d=1..25 / strand  5–40% peak rates  pLDDT · TM-score
+  (Tables 1 & 2)           (Figure 3, n=626)    (Figure S1)       (Figure S2)       (Table 3)
+          │                                                                                │
+          └──────────────────────────────────────────────────────────────────────────────→│
+                                                                                           ▼
+                                                                              Biosecurity classifier
+                                                                              1D CNN · AUC 0.934
+                                                                              98.2% windows clear
 ```
 
 ---
 
 ## Key Implementation Details
 
-**DamageAwareDataCollator** (`masking/collator_dam.py`): The core contribution. Computes a per-position, per-base-type masking probability matrix from the mapDamage2 output. The matrix is rescaled so C/G positions average 15% masking (equal total density to MLM), preserving the damage gradient as the only difference between the two training objectives. A/T tokens are never masked — biologically correct, since deamination is C/G-specific.
+**DamageAwareDataCollator** (`masking/collator_dam.py`): The core contribution. Computes a per-position, per-base-type masking probability matrix from the mapDamage2 output. The matrix is rescaled so C/G positions average 15% masking — equal total density to standard MLM — preserving the damage gradient as the *only* difference between the two training objectives. A/T tokens are never masked, which is biologically correct since deamination is C/G-specific. The rescaling ensures the comparison is fair: same masking budget, different spatial distribution.
 
-**BPE cascade avoidance** (`evaluation/simulate_damage.py`): DNABERT-2 uses byte-pair encoding. Substituting one nucleotide changes token boundaries across a large surrounding context (tested: 2 substitutions → 31 changed token positions). The evaluation uses `offset_mapping` from the original tokenization to locate which token spans each damaged nucleotide, then masks only that token in `gt_ids`. The damaged sequence is never re-tokenized.
+**BPE cascade avoidance** (`evaluation/simulate_damage.py`): DNABERT-2 uses byte-pair encoding. Substituting one nucleotide changes token boundaries across a large surrounding context — tested: 2 substitutions → 31 changed token positions. The evaluation uses `offset_mapping` from the original tokenisation to locate which token spans each damaged nucleotide, then masks only that token in `gt_ids`. The damaged sequence is never re-tokenised. Without this, evaluation would be confounded by BPE boundary shifts irrelevant to reconstruction accuracy.
 
-**Pure-Python structural comparison** (`protein/tmalign_compare.py`): TM-score (Zhang & Skolnick 2004) and Cα-RMSD computed via Kabsch superposition — no TMalign binary dependency. Validated against published TM-score values for known structure pairs.
+**Pure-Python structural comparison** (`protein/tmalign_compare.py`): TM-score (Zhang & Skolnick 2004) and Cα-RMSD computed via Kabsch superposition with no binary TMalign dependency. Validated against published TM-score values for known structure pairs; deviates < 0.001 from reference implementation.
+
+**Biosecurity classifier** (`biosecurity/train_classifier.py`): 3-layer 1D CNN trained on 266 pathogen virulence-gene windows (10 gene classes, 6 non-Select-Agent organisms) vs 626 host windows. One-hot encoded 300 bp inputs. Global max-pool architecture. AUC = 0.934 on stratified held-out test. Applied post-reconstruction as a safety gate.
 
 ---
 
-## Species
+## Species & Genes
 
 | Role | Species | Accession |
 |------|---------|-----------|
 | Ancient DNA | *Mammuthus primigenius* (Woolly Mammoth) | NCBI SRA · ERP008929 (Palkopoulou et al., 2015) |
 | Reference | *Elephas maximus* (Asian Elephant) | NCBI RefSeq · GCF_024166365.1 (EanMak 1.0) |
 
-**Training genes:** TRPV3 (cold sensing), KCNK9 (temperature-gated ion channel), HBB (hemoglobin β-subunit)  
-**Evaluation-only genes:** TRPA1, UCP1, ADRB3, FASN — all cold-adaptation relevant, none seen during training
+| Gene | Function | Role |
+|------|----------|------|
+| TRPV3 | Thermosensitive TRP channel | Training |
+| KCNK9 | Temperature-gated K⁺ channel | Training |
+| HBB | Haemoglobin β-subunit | Training |
+| TRPA1 | Cold/pain-sensing TRP channel | Held-out eval |
+| UCP1 | Uncoupling protein 1 (thermogenesis) | Held-out eval |
+| ADRB3 | Beta-3 adrenergic receptor | Held-out eval |
+| FASN | Fatty acid synthase | Held-out eval |
+
+All held-out genes are cold-adaptation relevant — biologically motivated choice, not arbitrary.
 
 ---
 
 ## Dataset
 
-Sliding window extraction over gene loci in the Asian Elephant reference: 2000 bp windows, stride 200 bp, tokenized to max 512 DNABERT-2 tokens.
+Sliding window extraction over gene loci in the Asian Elephant reference: 2000 bp windows, stride 200 bp, tokenised to max 512 DNABERT-2 tokens.
 
-| Split | Genes | Windows |
-|-------|-------|---------|
-| Train | TRPV3, KCNK9, HBB | 275 |
-| Validation | TRPV3, KCNK9, HBB | 69 |
-| Held-out eval | TRPA1, UCP1, ADRB3, FASN | 557 |
-| **Total (eval)** | **7 genes** | **626** |
+| Split | Genes | Windows | Purpose |
+|-------|-------|---------|---------|
+| Train | TRPV3, KCNK9, HBB | 275 | Fine-tuning |
+| Validation | TRPV3, KCNK9, HBB | 69 | Checkpoint selection |
+| Held-out eval | TRPA1, UCP1, ADRB3, FASN | 557 | Generalisation test |
+| **Total (eval)** | **7 genes** | **626** | |
 
-The 80/20 train/val split is random with seed 42. The held-out genes were fetched post-training via NCBI Entrez and never seen during fine-tuning — they are the primary generalization test. PMD damage is simulated at empirical C→T (5′) and G→A (3′) rates from the mapDamage2 profiles before evaluation; training windows use the undamaged reference.
+80/20 train/val split, random seed 42. Held-out genes fetched post-training via NCBI Entrez — never seen during fine-tuning. PMD damage is simulated at empirical rates before evaluation; training uses undamaged reference sequences.
 
 ---
 
@@ -193,36 +210,55 @@ The 80/20 train/val split is random with seed 42. The held-out genes were fetche
 VESTIGE/
 ├── damage/
 │   ├── parse_profiles.py          # misincorporation.txt → damage_profile.npy
-│   ├── visualize_damage.py        # Figure 1
+│   ├── visualize_damage.py        # Figure 1 — two-specimen PMD profile
 │   └── gene_coords.csv            # Genomic coordinates for all 7 genes
 │
 ├── masking/
-│   ├── collator_mlm.py            # Baseline: uniform random masking
-│   └── collator_dam.py            # Core contribution: Damage-Aware Masking
+│   ├── collator_mlm.py            # Baseline: uniform 15% random masking
+│   └── collator_dam.py            # Core: Damage-Aware Masking (PMD-weighted)
 │
 ├── training/
-│   ├── build_dataset.py           # 2000bp sliding window dataset (344 windows)
-│   ├── train.py                   # HuggingFace Trainer fine-tuning
-│   ├── config_mlm.yaml
-│   └── config_dam.yaml
+│   ├── build_dataset.py           # 2000 bp sliding window dataset builder
+│   ├── train.py                   # HuggingFace Trainer fine-tuning loop
+│   ├── log_to_wandb.py            # Training curve logging
+│   ├── config_mlm.yaml            # MLM baseline hyperparameters
+│   └── config_dam.yaml            # DAM proposed hyperparameters
 │
 ├── evaluation/
-│   ├── simulate_damage.py         # PMD-rate damage simulation (BPE-safe)
-│   ├── evaluate_reconstruction.py # Background-site recovery + BLEU-4
-│   ├── evaluate_terminal.py       # Terminal-zone recovery (T_END=10)
-│   ├── evaluate_scaling.py        # T_END sweep + 4-baseline comparison
-│   ├── evaluate_per_position.py   # Per-position d=1..25 decomposition
-│   └── expand_validation.py       # Fetch extra genes + build held-out eval set
+│   ├── simulate_damage.py         # In silico PMD damage (BPE-safe offset mapping)
+│   ├── evaluate_reconstruction.py # Background-site recovery + BLEU-4 (Table 1)
+│   ├── evaluate_terminal.py       # Terminal-zone recovery at T_END=10 (Table 2)
+│   ├── evaluate_scaling.py        # T_END sweep, 4 baselines, Figure 3
+│   ├── evaluate_per_position.py   # Per-position d=1..25, 5′-C / 3′-G (Figure S1)
+│   ├── evaluate_intensity.py      # Damage intensity sweep 5–40% (Figure S2)
+│   └── expand_validation.py       # Held-out gene fetch + window builder
 │
 ├── protein/
-│   ├── fetch_cds.py               # NCBI RefSeq mRNA CDS via Entrez elink
-│   ├── damage_reconstruct_cds.py  # CDS damage + reconstruction + translation
-│   ├── run_esmfold.py             # ESMFold REST API → 9 PDB files
-│   └── tmalign_compare.py         # Kabsch + TM-score (pure Python)
+│   ├── fetch_cds.py               # NCBI RefSeq CDS via Entrez gene→elink→efetch
+│   ├── damage_reconstruct_cds.py  # CDS damage simulation + model reconstruction
+│   ├── run_esmfold.py             # ESMFold REST API → PDB files
+│   └── tmalign_compare.py         # Kabsch superposition + TM-score (pure Python)
 │
-├── results/figures/               # All paper figures (PDF + PNG)
-├── Documentation/                 # Phase-by-phase research logs (08 files)
-└── Dataset/                       # Gitignored: BAM, reference FASTA
+├── biosecurity/
+│   ├── fetch_pathogen_seqs.py     # Virulence gene sequences from NCBI
+│   ├── train_classifier.py        # 1D CNN binary classifier (AUC 0.934)
+│   ├── pathogen_seqs.fasta        # 20 pathogen sequences, 10 gene classes
+│   └── classifier_results.json    # AUC, confusion matrix, flag analysis
+│
+├── results/
+│   ├── log_eval_to_wandb.py       # Log all results + figures to W&B
+│   ├── plot_figures.py            # Regenerate figures from saved JSONs
+│   └── figures/                   # All paper figures (PDF + PNG)
+│       ├── fig1_damage_profile
+│       ├── fig2_training_curves
+│       ├── fig3_damage_scaling
+│       ├── fig3b_headline
+│       ├── fig_per_position
+│       ├── fig_intensity
+│       └── fig_biosecurity
+│
+├── Documentation/                 # Phase-by-phase research logs (09 files)
+└── Dataset/                       # Gitignored: BAM files, reference FASTA
 ```
 
 ---
@@ -231,8 +267,8 @@ VESTIGE/
 
 ```bash
 # Environment
-conda create -n phoenix python=3.10 && conda activate phoenix
-pip install transformers datasets biopython wandb sacrebleu torch scipy matplotlib
+conda create -n vestige python=3.10 && conda activate vestige
+pip install transformers datasets biopython wandb sacrebleu torch scipy matplotlib scikit-learn
 conda install -c bioconda samtools sra-tools mapdamage2
 
 # Download mammoth reads (SRA)
@@ -246,41 +282,45 @@ datasets download genome accession GCF_024166365.1 --include genome \
 # Phase 1 — align + damage profile
 bwa index Dataset/elephant_reference/elephant_ref.fa
 bwa aln -l 16500 -n 0.01 -t 4 Dataset/elephant_reference/elephant_ref.fa \
-  Dataset/mammoth/ERR855944.fastq | bwa samse ... | samtools sort -o mammoth_ERR855944.bam
+  Dataset/mammoth/ERR855944.fastq | bwa samse \
+  Dataset/elephant_reference/elephant_ref.fa - Dataset/mammoth/ERR855944.sai \
+  Dataset/mammoth/ERR855944.fastq | samtools sort -o Dataset/mammoth/mammoth_ERR855944.bam
 mapDamage2 -i Dataset/mammoth/mammoth_ERR855944.bam \
   -r Dataset/elephant_reference/elephant_ref.fa \
   --folder Dataset/results/results_mammoth_ERR855944/
-python3 damage/parse_profiles.py
+python3 damage/parse_profiles.py        # → damage/damage_profile.npy
 
 # Phase 2 — fine-tune both models (~11–14h each on Apple M1 Pro)
-python3 training/build_dataset.py
+python3 training/build_dataset.py       # → training/dataset/ (344 windows)
 python3 training/train.py --config training/config_mlm.yaml
 python3 training/train.py --config training/config_dam.yaml
 
-# Phase 3 — evaluation
-python3 evaluation/simulate_damage.py
-python3 evaluation/evaluate_reconstruction.py      # Table 1
-python3 evaluation/evaluate_terminal.py            # Table 2
+# Phase 3 — reconstruction evaluation
+python3 evaluation/simulate_damage.py                              # → damaged_validation.npy
+python3 evaluation/evaluate_reconstruction.py                      # Table 1
+python3 evaluation/evaluate_terminal.py                            # Table 2
 NCBI_EMAIL=you@email.com python3 evaluation/expand_validation.py  # held-out genes
-python3 evaluation/evaluate_scaling.py             # Figure 3
+python3 evaluation/evaluate_scaling.py                             # Figure 3
 
-# Phase 3 ext — per-position decomposition
-python3 evaluation/evaluate_per_position.py
-
-# Phase 3 ext — damage intensity sweep (synthetic peak rates 5–40%)
-python3 evaluation/evaluate_intensity.py
+# Phase 3 ext — supplementary analyses
+python3 evaluation/evaluate_per_position.py                        # Figure S1
+python3 evaluation/evaluate_intensity.py                           # Figure S2
 
 # Phase 4 — protein structural validation
 NCBI_EMAIL=you@email.com python3 protein/fetch_cds.py
 python3 protein/damage_reconstruct_cds.py
-python3 protein/run_esmfold.py
-python3 protein/tmalign_compare.py                 # Table 3
+python3 protein/run_esmfold.py                                     # Table 3
+python3 protein/tmalign_compare.py
 
-# Log all evaluation results to W&B (reads from saved JSONs, no inference needed)
+# Phase 5 — biosecurity classifier
+NCBI_EMAIL=you@email.com python3 biosecurity/fetch_pathogen_seqs.py
+python3 biosecurity/train_classifier.py                            # AUC 0.934
+
+# Log all results to W&B (no model inference needed)
 python3 results/log_eval_to_wandb.py
 ```
 
-All evaluation metrics, T_END sweep line charts, per-position decomposition, and paper figures are tracked in [W&B](https://wandb.ai/angshumanchakravertty-svkm-s-narsee-monjee-institute-of-/vestige) for reproducibility.
+All evaluation metrics, line charts, tables, and paper figures are tracked in [W&B](https://wandb.ai/angshumanchakravertty-svkm-s-narsee-monjee-institute-of-/vestige) for full reproducibility.
 
 ---
 
