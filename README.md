@@ -118,47 +118,21 @@ A 1D CNN (AUC = 0.934) trained on 10 virulence gene classes (*E. coli* stx1/stx2
 
 ## Pipeline
 
-```
-Woolly Mammoth aDNA (SRA: ERP008929)          Asian Elephant genome (GCF_024166365.1)
-   ERR855944 · ERR852028                            elephant_ref.fa
-   (4,300 BP · 44,800 BP)                           GFF3 annotation
-          │                                               │
-     BWA-aln (aDNA params)                    gene_coords.csv  ──→  build_dataset.py
-     -l 16500 -n 0.01                         7 genes, 2000 bp sliding windows
-          │                                         344 windows (275 train / 69 val)
-     mammoth.bam                               + 557 held-out (4 new genes, post-training)
-          │                                               │
-     mapDamage2                                           │
-          │                                               │
-   damage_profile.npy  ─────────────────────────────┐    │
-   (C→T, G→A per position)                          ▼    ▼
-                                        ┌─────────────────────────────┐
-                                        │    DNABERT-2 Fine-tuning    │
-                                        │  ┌─────────┐  ┌─────────┐  │
-                                        │  │   MLM   │  │   DAM   │  │
-                                        │  │ uniform │  │ PMD-    │  │
-                                        │  │ masking │  │ weighted│  │
-                                        │  └─────────┘  └─────────┘  │
-                                        └─────────────────────────────┘
-                                                     │
-          ┌──────────────────────┬──────────────────┼──────────────────┬──────────────────┐
-          ▼                      ▼                   ▼                  ▼                  ▼
-  Nucleotide recovery      T_END sweep          Per-position      Intensity sweep    ESMFold (REST)
-  background + terminal    6 widths × 4 bases   d=1..25 / strand  5–40% peak rates  pLDDT · TM-score
-  (Tables 1 & 2)           (Figure 3, n=626)    (Figure S1)       (Figure S2)       (Table 3)
-          │                                                                                │
-          └──────────────────────────────────────────────────────────────────────────────→│
-                                                                                           ▼
-                                                                              Biosecurity classifier
-                                                                              1D CNN · AUC 0.934
-                                                                              98.2% windows clear
-```
+![VESTIGE Pipeline](results/figures/fig_pipeline.png)
 
 ---
 
 ## Key Implementation Details
 
 **DamageAwareDataCollator** (`masking/collator_dam.py`): The core contribution. Computes a per-position, per-base-type masking probability matrix from the mapDamage2 output. The matrix is rescaled so C/G positions average 15% masking — equal total density to standard MLM — preserving the damage gradient as the *only* difference between the two training objectives. A/T tokens are never masked, which is biologically correct since deamination is C/G-specific. The rescaling ensures the comparison is fair: same masking budget, different spatial distribution.
+
+Per-position masking probability drawn directly from the mapDamage2 misincorporation table:
+
+$$P_{\text{mask}}(p,\, b) = \begin{cases} \text{ct}_{5p}\!\left[\min(p,\, 69)\right] & \text{if } b = \text{C} \\ \text{ga}_{3p}\!\left[\min(L-1-p,\, 69)\right] & \text{if } b = \text{G} \\ 0 & \text{otherwise} \end{cases}$$
+
+Rescaled to maintain 15% average masking density across all C/G sites (same budget as standard MLM):
+
+$$P'_{\text{mask}}(p,\, b) = P_{\text{mask}}(p,\, b) \cdot \frac{0.15}{\bar{P}_{\text{CG}}}$$
 
 **BPE cascade avoidance** (`evaluation/simulate_damage.py`): DNABERT-2 uses byte-pair encoding. Substituting one nucleotide changes token boundaries across a large surrounding context — tested: 2 substitutions → 31 changed token positions. The evaluation uses `offset_mapping` from the original tokenisation to locate which token spans each damaged nucleotide, then masks only that token in `gt_ids`. The damaged sequence is never re-tokenised. Without this, evaluation would be confounded by BPE boundary shifts irrelevant to reconstruction accuracy.
 
