@@ -1,0 +1,21 @@
+# vestige:results — reproduces all figures from pre-computed evaluation outputs
+# No model inference, no bioinformatics tools needed.
+# Figures are written to /vestige/results/figures/
+#
+# docker run --rm -v $(pwd)/out:/vestige/results/figures ghcr.io/ganglet/vestige:results
+
+FROM --platform=linux/amd64 python:3.12-slim
+
+WORKDIR /vestige
+
+COPY requirements.results.txt .
+RUN pip install --no-cache-dir -r requirements.results.txt
+
+COPY damage/        damage/
+COPY evaluation/    evaluation/
+COPY results/       results/
+COPY biosecurity/   biosecurity/
+COPY masking/       masking/
+COPY protein/       protein/
+
+CMD ["python3", "results/plot_figures.py"]
