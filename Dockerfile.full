@@ -1,0 +1,31 @@
+# vestige:full — complete pipeline including bioinformatics tools and model training
+# Requires user-supplied data in Dataset/ (SRA reads + reference genome).
+# See README → Reproduce for the full command sequence.
+#
+# docker run --rm -it \
+#   -v $(pwd)/Dataset:/vestige/Dataset \
+#   ghcr.io/ganglet/vestige:full
+
+FROM --platform=linux/amd64 continuumio/miniconda3:24.1.2-0
+
+WORKDIR /vestige
+
+# bioinformatics stack via bioconda (pinned for reproducibility)
+RUN conda config --set remote_max_retries 5 --set remote_backoff_factor 2 && \
+    conda install -y -c bioconda -c conda-forge \
+        bwa=0.7.17 \
+        samtools=1.21 \
+        mapdamage2=2.1.1 \
+        sra-tools=3.1.1 \
+        seqtk=1.4 && \
+    conda clean -afy
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+# Dataset/ is volume-mounted at runtime — create empty mount point
+RUN mkdir -p Dataset/mammoth Dataset/elephant_reference Dataset/results
+
+CMD ["/bin/bash"]
