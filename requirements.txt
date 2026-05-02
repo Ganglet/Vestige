@@ -1,4 +1,4 @@
-# Phoenix-LM — Python dependencies
+# VESTIGE — Python dependencies
 # Tested on macOS (M1 Pro, Python 3.12)
 #
 # Install:

@@ -1,0 +1,9 @@
+# Minimal dependencies for figure regeneration only (vestige:results image).
+# No torch / transformers — evaluation outputs are pre-computed.
+numpy==1.26.4
+scipy==1.14.0
+matplotlib==3.8.4
+biopython==1.87
+pandas==2.2.3
+pyyaml==6.0.2
+scikit-learn==1.5.2
