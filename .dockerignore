@@ -1,0 +1,15 @@
+Dataset/
+wandb/
+training/checkpoints/
+training/dataset/
+Documentation/
+.git/
+.github/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+**/.DS_Store
+*.egg-info/
+.env
