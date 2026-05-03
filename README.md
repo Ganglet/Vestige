@@ -336,9 +336,23 @@ All evaluation metrics, line charts, tables, and paper figures are tracked in [W
 
 ---
 
+## Data & Attribution
+
+This project uses two publicly available datasets:
+
+**Woolly Mammoth ancient DNA** — NCBI SRA project ERP008929 (accessions ERR855944, ERR852028):
+> Palkopoulou, E., et al. (2015). Complete genomes reveal signatures of demographic and genetic declines in the woolly mammoth. *Current Biology*, 25(10), 1395–1400. https://doi.org/10.1016/j.cub.2015.04.007
+
+**Asian Elephant reference genome** — NCBI RefSeq GCF_024166365.1 (EanMak 1.0):
+> Palkopoulou, E., et al. (2015). *Elephas maximus* genome assembly EanMak 1.0. NCBI RefSeq GCF_024166365.1.
+
+Raw sequencing data are subject to NCBI SRA terms of use. The reference genome is available under NCBI data access policies. No raw data is redistributed in this repository — all results are derived outputs.
+
+---
+
 ## License
 
-Code: MIT · Data: subject to NCBI SRA terms of use (accessions ERP008929, GCF_024166365.1)
+Code: MIT — see [LICENSE](LICENSE)
 
 <p align="center">
   <img src="https://capsule-render.vercel.app/api?type=waving&color=0:2980b9,50:922b21,100:c0392b&height=120&section=footer" />
