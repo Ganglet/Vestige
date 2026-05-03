@@ -1,4 +1,8 @@
 <p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:c0392b,50:922b21,100:2980b9&height=220&section=header&text=VESTIGE&fontSize=72&fontColor=ffffff&fontAlignY=38&animation=fadeIn&desc=Damage-Aware%20Ancient%20DNA%20Infilling%20%C2%B7%20Protein%20Stability%20Validation&descSize=15&descAlignY=58&descColor=ffffff" />
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white" />
   <img src="https://img.shields.io/badge/🤗_DNABERT--2-117M-FFD21E" />
@@ -335,3 +339,7 @@ All evaluation metrics, line charts, tables, and paper figures are tracked in [W
 ## License
 
 Code: MIT · Data: subject to NCBI SRA terms of use (accessions ERP008929, GCF_024166365.1)
+
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:2980b9,50:922b21,100:c0392b&height=120&section=footer" />
+</p>
