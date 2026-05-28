@@ -226,8 +226,8 @@ def make_pipeline():
 
     C_SUPP_L, C_SUPP = "#f0f0f0", "#999999"
     supp_eval = [
-        (6.5, 4.3, "Per-position\nAnalysis",  "d = 1…25 · 5′-C / 3′-G\n(Fig. S1)"),
-        (9.0, 4.3, "Damage\nIntensity Sweep", "5% – 40% peak rates\n(Fig. S2)"),
+        (6.5, 4.3, "Per-position\nAnalysis",  "d = 1…25 · 5′-C / 3′-G\n(Fig. 6)"),
+        (9.0, 4.3, "Damage\nIntensity Sweep", "5% – 40% peak rates\n(Fig. 7)"),
     ]
     for ex, ey, el, esl in supp_eval:
         patch = FancyBboxPatch(
