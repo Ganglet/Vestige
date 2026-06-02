@@ -61,3 +61,4 @@ Dataset/elephant_reference/ncbi_dataset.zip
 # ─── Secrets ──────────────────────────────────────────────────────────────────
 .env
 *.key
+Paper/
