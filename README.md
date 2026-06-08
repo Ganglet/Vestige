@@ -4,6 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white" />
+  <a href="https://doi.org/10.5281/zenodo.20601069"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20601069-blue?style=flat" alt="DOI" /></a>
   <img src="https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white" />
   <img src="https://img.shields.io/badge/🤗_DNABERT--2-117M-FFD21E" />
   <img src="https://img.shields.io/badge/ESMFold-REST_API-6366f1" />
